@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon name="NakamaX4Client">
+  <environment type="menus">
+    <!-- Load the Nakama DLL wrapper -->
+    <file name="ui/nakama/nakama_lib.lua" />
+    
+    <!-- Load the main client interface -->
+    <file name="ui/nakama/nakama_client.lua" />
+    <dependency name="sn_mod_support_apis" />
+  </environment>
+</addon>

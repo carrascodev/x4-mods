@@ -1,0 +1,25 @@
+name: "nakama"                   # Server name
+transport:
+  grpc_port: 7349                 # gRPC API port
+  http_key: "defaultkey"          # HTTP API authentication key
+logger:
+  level: "info"                   # Log level (debug, info, warn, error)
+database:
+  address: "postgres:5432"        # PostgreSQL database
+  user: "admin"
+  password: "localdb"
+  name: "nakama"
+  max_open_conns: 100
+  max_idle_conns: 25
+console:
+  port: 7351                      # Nakama Developer Console port
+  username: "admin"
+  password: "password"
+runtime:
+  env: "dev"                      # Development mode
+  path: "/nakama/data/modules"    # Path to custom Go plugins
+  http_key: "runtime-key"
+session:
+  token_expiry_sec: 86400         # Session token expiration (24 hours)
+socket:
+  port: 7350                      # WebSocket API port
