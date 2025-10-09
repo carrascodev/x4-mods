@@ -16,20 +16,6 @@
 
 #pragma once
 
-#include <nakama-cpp/NTypes.h>
-#include <nakama-cpp/data/NGroupUser.h>
-#include <vector>
-#include <memory>
+#undef SATORI_API
 
-NAKAMA_NAMESPACE_BEGIN
-
-    /// A list of users belonging to a group, along with their role.
-    struct NGroupUserList
-    {
-        std::vector<NGroupUser> groupUsers;    ///< User-role pairs for a group.
-        std::string cursor;                    ///< Cursor for the next page of results, if any.
-    };
-
-    using NGroupUserListPtr = std::shared_ptr<NGroupUserList>;
-
-NAKAMA_NAMESPACE_END
+#define SATORI_API
