@@ -4,7 +4,8 @@
 param(
     [string]$BuildType = "Debug",
     [switch]$Clean,
-    [switch]$Test
+    [switch]$Test,
+    [switch]$CopyFiles = $False
 )
 
 $ErrorActionPreference = "Stop"
@@ -82,3 +83,10 @@ $DllPath = Join-Path $BuildDir "$BuildType\nakama_x4.dll"
 Write-Host $DllPath -ForegroundColor Cyan
 Write-Host ""
 Write-Host "You can now test the DLL in X4 or run the debug exe." -ForegroundColor Green
+
+if ($CopyFiles -eq $True) {
+    Write-Host "Copying built DLL and PDB to project directory..." -ForegroundColor Magenta
+    Copy-Item -Path (Join-Path $BuildDir "$BuildType\nakama_x4.dll") -Destination (Join-Path $ProjectRoot "Mods\NakamaX4Client\ui\nakama\nakama_x4.dll") -Force
+    Copy-Item -Path (Join-Path $BuildDir "$BuildType\nakama_x4.pdb") -Destination (Join-Path $ProjectRoot "Mods\NakamaX4Client\ui\nakama\nakama_x4.pdb") -Force
+    Write-Host "Files copied successfully at path: $ProjectRoot\Mods\NakamaX4Client\ui\nakama\" -ForegroundColor Green
+}
