@@ -7,8 +7,9 @@
 #endif
 
 extern "C" {
+    #include "lua.h" // Forward declaration for lua_State
     // Lua module entry point (standard Lua C module convention)
-    NAKAMA_X4_API int luaopen_nakama_x4(void* L);
+    NAKAMA_X4_API int luaopen_nakama_x4(lua_State* L);
     
     // Basic lifecycle functions
     NAKAMA_X4_API int nakama_init(const char* host, int port, const char* server_key);

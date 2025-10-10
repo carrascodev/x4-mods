@@ -17,6 +17,7 @@
 #pragma once
 
 #include <nakama-cpp/NTypes.h>
+#include <nakama-cpp/NExport.h>
 #include <nakama-cpp/data/NNotification.h>
 #include <vector>
 #include <memory>

@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
-
-# Set vcpkg toolchain before project() call
 set(CMAKE_TOOLCHAIN_FILE "D:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+
+# Lua configuration for X4
+set(LUA_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/third-party/lua/lua51_64.lib")
+set(LUA_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third-party/lua/")
 
 project(NakamaX4Client VERSION 1.0.0 LANGUAGES CXX)
 
@@ -19,14 +21,14 @@ endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Building in Debug mode for console flexibility")
     if(MSVC)
-        add_compile_options(/W4 /Zi)
+        add_compile_options(/W4 /Zi /EHa)
     else()
         add_compile_options(-Wall -Wextra -g -O0)
     endif()
 else()
     message(STATUS "Building in Release mode")
     if(MSVC)
-        add_compile_options(/W4 /O2)
+        add_compile_options(/W4 /O2 /EHa)
     else()
         add_compile_options(-Wall -Wextra -O2)
     endif()
@@ -34,11 +36,6 @@ endif()
 
 # Find required packages
 find_package(Threads REQUIRED)
-
-# Use X4's actual Lua library for perfect compatibility
-set(X4_LUA_DLL "D:/Games/X4 Foundations/lua51_64.dll")
-set(LUA_INCLUDE_DIR "D:/dev/vcpkg/installed/x64-windows/include")  # Still use headers from vcpkg
-set(LUA_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/third-party/lua-x4/lib/lua51_64.lib")  # Use X4's Lua import lib
 
 # Find nlohmann/json via vcpkg
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -51,11 +48,8 @@ else()
 endif()
 
 # Nakama SDK paths - use existing third-party location for now  
-if(WIN32)
-    set(NAKAMA_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third-party/nakama-sdk/win-x64" CACHE PATH "Path to pre-compiled Nakama SDK")
-else()
-    set(NAKAMA_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third-party/nakama-sdk/linux-amd64" CACHE PATH "Path to pre-compiled Nakama SDK")
-endif()
+set(NAKAMA_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third-party/nakama-sdk/win-x64" CACHE PATH "Path to pre-compiled Nakama SDK")
+
 
 # Check if Nakama SDK exists
 if(EXISTS "${NAKAMA_SDK_ROOT}")
@@ -153,7 +147,10 @@ add_custom_target(build-help
 )
 
 # Nakama X4 DLL for Lua integration
-add_library(nakama_x4 SHARED src/nakama_x4_dll.cpp)
+add_library(nakama_x4 SHARED
+    src/nakama_x4_dll.cpp
+    src/LogToX4.cpp
+)
 
 target_include_directories(nakama_x4 PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -161,12 +158,16 @@ target_include_directories(nakama_x4 PRIVATE
     ${LUA_INCLUDE_DIR}
 )
 
+if (MSVC)
+target_link_options(nakama_x4 PRIVATE "/EXPORT:luaopen_nakama_x4")
+endif()
+
 target_link_libraries(nakama_x4 PRIVATE 
     ${NAKAMA_LIBRARY}
     Threads::Threads
     ${PLATFORM_LIBS}
     $<$<BOOL:${nlohmann_json_FOUND}>:nlohmann_json::nlohmann_json>
-    ${LUA_LIBRARIES}  # Now links against X4's lua51_64.lib
+    ${LUA_LIBRARIES}
 )
 
 target_compile_definitions(nakama_x4 PRIVATE 
@@ -185,20 +186,12 @@ set_target_properties(nakama_x4 PROPERTIES
 if(WIN32 AND NAKAMA_DLL)
     add_custom_command(TARGET nakama_x4 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${NAKAMA_DLL}"
-        "$<TARGET_FILE_DIR:nakama_x4>"
+            "${NAKAMA_DLL}"
+            "$<TARGET_FILE_DIR:nakama_x4>"
         COMMENT "Copying Nakama DLL for nakama_x4 DLL"
     )
 endif()
 
-# Test for the nakama_x4 DLL
-add_executable(test_nakama_dll ../test/test_nakama_dll.cpp)
-target_include_directories(test_nakama_dll PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-set_target_properties(test_nakama_dll PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Debug"
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/Debug"
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release"
-)
+# Debug executable to test DLL loading
+add_executable(debug_nakama src/debug_nakama.cpp)
+target_link_libraries(debug_nakama kernel32)

@@ -17,13 +17,13 @@
 #pragma once
 
 #include <string>
-#include <optional>
+#include <nonstd/optional.hpp>
 
 namespace Nakama {
     struct URLParts {
         std::string scheme;
         std::string host;
-        std::optional<uint16_t> port;
+        opt::optional<uint16_t> port;
         std::string pathAndArgs;
         std::string url;
     };
