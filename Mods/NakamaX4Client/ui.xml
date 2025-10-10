@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon name="NakamaX4Client">
   <environment type="menus">
+    <file name="ui/nakama/debugger.lua" />
+    <file name="ui/nakama/log_lib.lua" />
     <!-- Load the Nakama DLL wrapper -->
     <file name="ui/nakama/nakama_lib.lua" />
     

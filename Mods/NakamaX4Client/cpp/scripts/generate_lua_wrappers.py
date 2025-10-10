@@ -12,12 +12,13 @@ import os
 from typing import List, Dict, Tuple
 
 class FunctionSignature:
-    def __init__(self, return_type: str, name: str, params: List[Tuple[str, str]], class_name: str = "", header_file: str = ""):
+    def __init__(self, return_type: str, name: str, params: List[Tuple[str, str]], class_name: str = "", header_file: str = "", namespace: str = ""):
         self.return_type = return_type.strip()
         self.name = name.strip()
         self.params = params
         self.class_name = class_name.strip()
         self.header_file = header_file
+        self.namespace = namespace.strip()
 
     def __str__(self):
         param_str = ", ".join(f"{t} {n}" for t, n in self.params)
@@ -84,11 +85,28 @@ def scan_header_files_for_exports(header_dir: str) -> List[FunctionSignature]:
                 # Split into lines for processing
                 lines = content.split('\n')
                 current_class = ""
+                current_namespace = ""
                 brace_depth = 0
+                namespace_depth = 0
                 
                 i = 0
                 while i < len(lines):
                     line = lines[i].strip()
+                    
+                    # Track namespace definitions
+                    if line.startswith('namespace '):
+                        # Extract namespace name
+                        ns_match = re.match(r'namespace\s+(\w+)', line)
+                        if ns_match:
+                            current_namespace = ns_match.group(1)
+                            # Look ahead to find the opening brace
+                            k = i + 1
+                            while k < len(lines) and '{' not in lines[k]:
+                                k += 1
+                            if k < len(lines) and '{' in lines[k]:
+                                namespace_depth = lines[k].count('{') - lines[k].count('}')
+                            else:
+                                namespace_depth = 0
                     
                     # Track class definitions
                     if line.startswith('class '):
@@ -107,10 +125,15 @@ def scan_header_files_for_exports(header_dir: str) -> List[FunctionSignature]:
                     
                     # Track brace depth for nested structures
                     brace_depth += line.count('{') - line.count('}')
+                    namespace_depth += line.count('{') - line.count('}')
                     
                     # If we exit a class definition, clear current_class
                     if brace_depth <= 0 and current_class:
                         current_class = ""
+                    
+                    # If we exit a namespace definition, clear current_namespace
+                    if namespace_depth <= 0 and current_namespace:
+                        current_namespace = ""
                     
                     # Look for LUA_EXPORT comments
                     if '// LUA_EXPORT' in line:
@@ -135,6 +158,7 @@ def scan_header_files_for_exports(header_dir: str) -> List[FunctionSignature]:
                             try:
                                 parsed = parse_cpp_function_signature(func_signature)
                                 parsed.class_name = current_class
+                                parsed.namespace = current_namespace
                                 parsed.header_file = file_path
                                 functions.append(parsed)
                                 print(f"Found LUA_EXPORT function: {parsed} in class {current_class}")
@@ -223,7 +247,10 @@ def generate_lua_wrapper(func: FunctionSignature) -> str:
     if func.class_name:
         base_call = f"{func.class_name}::GetInstance()->{func.name}({', '.join(param_extracts)})"
     else:
-        base_call = f"{func.name}({', '.join(param_extracts)})"
+        if func.namespace:
+            base_call = f"{func.namespace}::{func.name}({', '.join(param_extracts)})"
+        else:
+            base_call = f"{func.name}({', '.join(param_extracts)})"
 
     # Generate return value handling
     if func.return_type == "void":
@@ -287,8 +314,8 @@ def generate_lua_module_registration(functions: List[FunctionSignature], module_
 #ifdef _WIN32
 __declspec(dllexport)
 #endif
-int luaopen_{module_name}_x4(lua_State* L) {{
-    luaL_register(L, "{module_name}_x4", {module_name}_functions);
+int luaopen_{module_name}(lua_State* L) {{
+    luaL_register(L, "{module_name}", {module_name}_functions);
     return 1;
 }}
 
@@ -341,6 +368,7 @@ def main():
 // Auto-generated Lua wrappers for {header_name}
 // Include necessary headers
 #include "{rel_path}"
+#include "lua_bindings.h"
 
 extern "C" {{
 #include <lua.h>
