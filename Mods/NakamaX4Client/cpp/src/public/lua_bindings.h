@@ -10,6 +10,19 @@ extern "C" {
 
 // Lua binding utilities and helper functions for NakamaX4Client
 
+// Global Lua state for callbacks (set during DLL initialization)
+extern lua_State* g_luaState;
+
+// Set the Lua state for callback use
+inline void SetLuaState(lua_State* L) {
+    g_luaState = L;
+}
+
+// Get the Lua state for callbacks
+inline lua_State* GetLuaState() {
+    return g_luaState;
+}
+
 // Helper to push AuthResult to Lua
 inline void PushAuthResult(lua_State* L, const NakamaX4Client::AuthResult& result) {
     lua_newtable(L);

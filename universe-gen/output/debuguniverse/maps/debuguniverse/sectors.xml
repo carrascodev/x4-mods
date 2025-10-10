@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<macros>
+    <macro name="debuguni__cluster01_sector001_macro" class="sector">
+    <component ref="standardsector" />
+    <connections>
+          <connection name="debuguni__zone001_cluster01_sector001_connection" ref="zones">
+            <offset>
+              <position x="0" y="0" z="0" />
+            </offset>
+            <macro ref="debuguni__zone001_cluster01_sector001_macro" connection="sector" />
+          </connection>
+          <connection name="debuguni__zone002_cluster01_sector001_connection" ref="zones">
+            <offset>
+              <position x="0" y="0" z="100000" />
+            </offset>
+            <macro ref="debuguni__zone002_cluster01_sector001_macro" connection="sector" />
+          </connection>
+          <connection name="debuguni__zone003_cluster01_sector001_connection" ref="zones">
+            <offset>
+              <position x="0" y="0" z="100000" />
+            </offset>
+            <macro ref="debuguni__zone003_cluster01_sector001_macro" connection="sector" />
+          </connection>
+    </connections>
+  </macro>
+  <macro name="debuguni__cluster02_sector001_macro" class="sector">
+    <component ref="standardsector" />
+    <connections>
+          <connection name="debuguni__zone001_cluster02_sector001_connection" ref="zones">
+            <offset>
+              <position x="0" y="0" z="0" />
+            </offset>
+            <macro ref="debuguni__zone001_cluster02_sector001_macro" connection="sector" />
+          </connection>
+          <connection name="debuguni__zone002_cluster02_sector001_connection" ref="zones">
+            <offset>
+              <position x="0" y="0" z="-100000" />
+            </offset>
+            <macro ref="debuguni__zone002_cluster02_sector001_macro" connection="sector" />
+          </connection>
+          <connection name="debuguni__zone003_cluster02_sector001_connection" ref="zones">
+            <offset>
+              <position x="0" y="0" z="-100000" />
+            </offset>
+            <macro ref="debuguni__zone003_cluster02_sector001_macro" connection="sector" />
+          </connection>
+    </connections>
+  </macro>
+</macros>

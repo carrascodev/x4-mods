@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+    
+    <replace sel="//cue[@name='Place_DataVaults']/actions" >
+      <actions>
+        <create_group groupname="$VaultsGroup"/>
+        <create_group groupname="$UnlockedVaultsGroup"/>
+
+        <!--data vaults-->
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="167485m" y="0m" z="167442m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak1" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-168645m" y="0m" z="-190075m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak2" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="121974m" y="0m" z="-139508m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak3" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="105534m" y="0m" z="-198648m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak4" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="182488m" y="0m" z="129459m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak5" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-69561m" y="0m" z="100619m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak6" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-107955m" y="0m" z="123049m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak7" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="112550m" y="0m" z="157233m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak8" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-179433m" y="0m" z="-61275m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak9" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="162632m" y="0m" z="28186m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak10" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="28702m" y="0m" z="159057m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak11" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-70662m" y="0m" z="-140748m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak12" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="174578m" y="0m" z="24709m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak13" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="125354m" y="0m" z="-65846m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak14" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="46537m" y="0m" z="86722m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak15" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-19866m" y="0m" z="13211m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak16" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="75555m" y="0m" z="145956m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak17" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-624m" y="0m" z="92056m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak18" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-26180m" y="0m" z="-134604m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak19" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-47470m" y="0m" z="-18028m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak20" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-176206m" y="0m" z="134890m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak21" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="5476m" y="0m" z="-78268m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak22" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="86547m" y="0m" z="-49827m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak23" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="94683m" y="0m" z="70697m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak24" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-190263m" y="0m" z="-20369m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak25" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="-101151m" y="0m" z="-182827m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak26" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="113365m" y="0m" z="-156974m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak27" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+        <find_zone name="$zone" macro="macro.debuguni__zone001_cluster01_Sector001_macro"/>
+        <do_if value="$zone.exists">
+          <create_object name="$vault" groupname="$VaultsGroup" owner="faction.ownerless" macro="macro.landmarks_vault_01_macro" zone="$zone">
+            <position x="70263m" y="0m" z="-3639m"/>
+          </create_object>
+          <do_if value="$vault.exists">
+            <find_signalleak_location name="$slot" container="$vault"/>
+            <create_signal_leak name="$leak28" type="signalleaktype.data" object="$vault" slot="$slot" macro="macro.dataleak_xs_vault_01_macro"/>
+          </do_if>
+        </do_if>
+      </actions>
+
+    </replace>
+</diff>

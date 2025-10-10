@@ -1,0 +1,81 @@
+{
+  "seed": 4,
+  "galaxyName": "debuguniverse",
+  "galaxyPrefix": "debuguni_",
+  "galaxyOptions": {
+    "addDoubleTravelSpeed": true
+  },
+  "description": "Minimal Debug Universe",
+  "author": "HenSea",
+  "version": "1",
+  "date": "2025-10-10",
+  "save": "0",
+  "minRandomBelts": 0,
+  "maxRandomBelts": 0,
+  "clusters": [
+    {
+      "id": "01",
+      "name": "Debug Hub",
+      "description": "Starting sector with basic stations",
+      "music": "music_cluster_02",
+      "sunlight": "1",
+      "economy": "0.75",
+      "security": "0.75",
+      "x": 0,
+      "y": 0,
+      "backdrop": "empty_space",
+      "noBelts": true,
+      "connections": [
+        {
+          "targetClusterId": "02",
+          "connectionType": "N"
+        }
+      ],
+      "belts": [],
+      "stations": [
+        {
+          "type": "SHIPYARD",
+          "race": "ARGON",
+          "owner": "PLAYER",
+          "faction": "PLAYER"
+        },
+        {
+          "type": "TRADE",
+          "race": "ARGON",
+          "owner": "PLAYER",
+          "faction": "PLAYER"
+        }
+      ],
+      "spaceObjects": []
+    },
+    {
+      "id": "02",
+      "name": "Debug Outpost",
+      "description": "Connected sector for testing",
+      "music": "music_cluster_02",
+      "sunlight": "1",
+      "economy": "0.5",
+      "security": "0.5",
+      "x": 1,
+      "y": 0,
+      "backdrop": "empty_space",
+      "noBelts": true,
+      "connections": [
+        {
+          "targetClusterId": "01",
+          "connectionType": "S"
+        }
+      ],
+      "belts": [],
+      "stations": [
+        {
+          "type": "DEFENCE",
+          "race": "ARGON",
+          "owner": "PLAYER",
+          "faction": "PLAYER"
+        }
+      ],
+      "spaceObjects": []
+    }
+  ]
+}

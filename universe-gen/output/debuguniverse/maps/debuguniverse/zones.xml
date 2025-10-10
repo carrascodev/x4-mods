@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<macros xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        <macro name="debuguni__zone001_cluster01_sector001_macro" class="zone">
+        <component ref="standardzone" />
+        <connections>
+        </connections>
+      </macro>
+      <macro name="debuguni__zone002_cluster01_sector001_macro" class="zone">
+        <component ref="standardzone" />
+        <connections>
+          <connection name="debuguni__gate_c01s001z002_c02s001z002_connection" ref="gates">
+            <offset>
+              <position x="0" y="500" z="0" />
+		      <rotation yaw="180" pitch="0" roll="0" />
+            </offset>
+            <macro ref="props_gates_anc_gate_macro" connection="space" />
+          </connection>
+        </connections>
+      </macro>
+      <macro name="debuguni__zone003_cluster01_sector001_macro" class="zone">
+        <component ref="standardzone" />
+        <connections>
+          <connection name="debuguni__gate_c01s001z003_c02s001z003_connection" ref="gates">
+            <offset>
+              <position x="0" y="500" z="0" />
+		      <rotation yaw="180" pitch="0" roll="0" />
+            </offset>
+            <macro ref="props_gates_anc_gate_macro" connection="space" />
+          </connection>
+        </connections>
+      </macro>
+      <macro name="debuguni__zone001_cluster02_sector001_macro" class="zone">
+        <component ref="standardzone" />
+        <connections>
+        </connections>
+      </macro>
+      <macro name="debuguni__zone002_cluster02_sector001_macro" class="zone">
+        <component ref="standardzone" />
+        <connections>
+          <connection name="debuguni__gate_c02s001z002_c01s001z002_connection" ref="gates">
+            <offset>
+              <position x="0" y="500" z="0" />
+		      <rotation yaw="360" pitch="0" roll="0" />
+            </offset>
+            <macro ref="props_gates_anc_gate_macro" connection="space" />
+          </connection>
+        </connections>
+      </macro>
+      <macro name="debuguni__zone003_cluster02_sector001_macro" class="zone">
+        <component ref="standardzone" />
+        <connections>
+          <connection name="debuguni__gate_c02s001z003_c01s001z003_connection" ref="gates">
+            <offset>
+              <position x="0" y="500" z="0" />
+		      <rotation yaw="360" pitch="0" roll="0" />
+            </offset>
+            <macro ref="props_gates_anc_gate_macro" connection="space" />
+          </connection>
+        </connections>
+      </macro>
+</macros>

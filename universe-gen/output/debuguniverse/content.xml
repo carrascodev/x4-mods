@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="debuguniverse" name="debuguniverse" description="Minimal Debug Universe"  author="HenSea" version="1" date="2025-10-10" save="0">
+    <dependency id="ego_dlc_terran" version="100" optional="false"/>
+</content>

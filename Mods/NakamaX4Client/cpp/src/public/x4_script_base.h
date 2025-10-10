@@ -2,6 +2,9 @@
 #include <string>
 #include <memory>
 #include <cstdarg>
+#include <vector>
+#include <functional>
+#include <unordered_map>
 #include "log_to_x4.h"
 
 // Abstract base class for X4 C++ scripts
@@ -20,7 +23,16 @@ public:
     // Pure virtual methods that derived classes must implement
     virtual bool Initialize() { return true; } // Default implementation
     virtual void Shutdown() = 0;
-    virtual void Update(float deltaTime) = 0;
+    virtual void Update(float deltaTime) {
+        // Call all registered update callbacks
+        for (const auto& callback : m_registeredCallbacks) {
+            try {
+                callback.second(deltaTime);
+            } catch (const std::exception& e) {
+                LogError("Exception in update callback: %s", e.what());
+            }
+        }
+    }
 
     // Common functionality
     const std::string& GetScriptName() const { return m_scriptName; }
@@ -48,6 +60,17 @@ public:
         va_end(args);
     }
 
+    // Callback registration methods
+    int RegisterUpdateCallback(std::function<void(float)> callback) {
+        int callbackId = m_nextCallbackId++;
+        m_registeredCallbacks[callbackId] = callback;
+        return callbackId;
+    }
+
+    void UnregisterUpdateCallback(int callbackId) {
+        m_registeredCallbacks.erase(callbackId);
+    }
+
 protected:
     void SetInitialized(bool initialized) { m_initialized = initialized; }
 
@@ -57,6 +80,10 @@ private:
         vsnprintf_s(buffer, sizeof(buffer), _TRUNCATE, fmt, args);
         return std::string(buffer);
     }
+
+    std::vector<std::function<void()>> m_updateCallbacks;
+    int m_nextCallbackId = 0;
+    std::unordered_map<int, std::function<void(float)>> m_registeredCallbacks;
 };
 
 // Template class for singleton script instances

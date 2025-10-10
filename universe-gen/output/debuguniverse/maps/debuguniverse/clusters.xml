@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<macros>
+    <macro name="debuguni__cluster01_macro" class="cluster">
+    <component ref="standardcluster" />
+    <connections>
+      <connection name="debuguni__cluster01_sector001_connection" ref="sectors">  
+        <macro ref="debuguni__cluster01_sector001_macro" connection="cluster" />
+      </connection>
+      <connection ref="content">
+        <macro>
+          <component connection="space" ref="empty_space" />
+        </macro>
+      </connection>
+    </connections>
+  </macro>
+  <macro name="debuguni__cluster02_macro" class="cluster">
+    <component ref="standardcluster" />
+    <connections>
+      <connection name="debuguni__cluster02_sector001_connection" ref="sectors">  
+        <macro ref="debuguni__cluster02_sector001_macro" connection="cluster" />
+      </connection>
+      <connection ref="content">
+        <macro>
+          <component connection="space" ref="empty_space" />
+        </macro>
+      </connection>
+    </connections>
+  </macro>
+</macros>

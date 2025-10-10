@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+    <replace sel="//cue[@name='FactionLogicManagers']/conditions/check_value/@value">player.galaxy.macro.ismacro.{macro.debuguni__galaxy_macro}</replace>
+    <replace sel="//actions/run_actions[@ref='md.X4Ep1_War_Subscriptions.Get_Active_War_Subscriptions']"><set_value name="$ActiveAlliedSubscriptions" exact="[]"/></replace>
+    <remove sel="//actions/do_if/run_actions[@ref='md.X4Ep1_War_Subscriptions.Get_Active_War_Subscriptions']" />
+</diff>
