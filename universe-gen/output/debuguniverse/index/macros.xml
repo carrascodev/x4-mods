@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<index>
-  <!-- debuguniverse -->
-  <entry name="debuguni__galaxy_macro" value="extensions\debuguniverse\maps\debuguniverse\galaxy"/>
-  <entry name="debuguni__cluster*" value="extensions\debuguniverse\maps\debuguniverse\clusters"/>
-  <entry name="debuguni__cluster01_sector*" value="extensions\debuguniverse\maps\debuguniverse\sectors"/>
-  <entry name="debuguni__cluster02_sector*" value="extensions\debuguniverse\maps\debuguniverse\sectors"/>
-  <entry name="debuguni__zone*" value="extensions\debuguniverse\maps\debuguniverse\zones"/>
-</index>

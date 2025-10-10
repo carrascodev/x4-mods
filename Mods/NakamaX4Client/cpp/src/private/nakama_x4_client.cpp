@@ -4,13 +4,11 @@
 #include <chrono>
 #include <thread>
 #include <ctime>
-#include "nakama_x4_client.h"
 
 NakamaX4Client::NakamaX4Client()
     : X4ScriptSingleton("NakamaX4Client")
     , m_authenticating(false)
-    , m_syncing(false)
-    , m_lastUpdateTime(std::chrono::steady_clock::now()) {
+    , m_syncing(false) {
 }
 
 bool NakamaX4Client::Initialize(const Config& config) {
@@ -48,25 +46,7 @@ void NakamaX4Client::Shutdown() {
     LogInfo("Nakama client shutdown complete");
 }
 
-std::thread NakamaX4Client::StartUpdater() {
-    return std::thread([this]() {
-        while (m_client != nullptr) {
-
-            auto currentTime = std::chrono::steady_clock::now();
-            std::chrono::duration<float> deltaTime = currentTime - m_lastUpdateTime;
-            m_lastUpdateTime = currentTime;
-
-            m_client->tick();
-            Update(deltaTime.count());
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
-    });
-}
-
 void NakamaX4Client::Update(float deltaTime) {
-    // Call base class Update to handle callbacks
-    X4ScriptBase::Update(deltaTime);
-
     // Process any pending async operations
     // This could be expanded to handle timeouts, retries, etc.
 }
@@ -96,9 +76,6 @@ bool NakamaX4Client::CreateClient(const Config& config) {
             LogError("Failed to create Nakama client");
             return false;
         }
-
-        m_updaterThread = StartUpdater();
-        m_updaterThread.detach();
     }
     catch (const std::exception& e) {
         LogError("Exception creating Nakama client: %s", e.what());
@@ -149,7 +126,7 @@ NakamaX4Client::AuthResult NakamaX4Client::PerformAuthentication(const std::stri
         };
 
         // Use device authentication
-        m_client->authenticateDevice(deviceId, username, true, {}, successCallback, errorCallback);
+        m_client->authenticateDevice(deviceId, username, false, {}, successCallback, errorCallback);
 
         // Wait for result with timeout
         auto future_status = future->get_future().wait_for(std::chrono::seconds(10));
@@ -241,4 +218,30 @@ NakamaX4Client::SyncResult NakamaX4Client::PerformDataSync(const std::string& pl
 
 bool NakamaX4Client::IsAuthenticated() const {
     return m_session != nullptr;
+}
+
+void NakamaX4Client::Tick() {
+    // Process any pending operations
+    // This could be expanded for more complex async handling
+    
+    // Update status
+    if (!IsInitialized()) {
+        m_status = "Not initialized";
+    } else if (m_authenticating) {
+        m_status = "Authenticating";
+    } else if (m_syncing) {
+        m_status = "Syncing data";
+    } else if (IsAuthenticated()) {
+        m_status = "Authenticated";
+    } else {
+        m_status = "Ready";
+    }
+}
+
+const char* NakamaX4Client::GetLastError() const {
+    return m_lastError.c_str();
+}
+
+const char* NakamaX4Client::GetStatus() const {
+    return m_status.c_str();
 }
