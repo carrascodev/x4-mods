@@ -1,6 +1,3 @@
-[submodule "nakama-sdk"]
-	path = nakama-sdk
-	url = https://github.com/heroiclabs/nakama-cpp.git
 [submodule "x4-projects"]
 	path = x4-projects
 	url = https://github.com/bvbohnen/x4-projects.git

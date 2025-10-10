@@ -67,11 +67,6 @@
           <!-- Start periodic sync timer -->
           <signal_cue_instantly cue="Start_Periodic_Sync" />
         </do_if>
-        <do_else>
-          <set_value name="$nakama_authenticated" exact="false" />
-          <debug_text text="'[Nakama] Authentication failed: %s'.[event.param]" chance="100"
-            filter="general" />
-        </do_else>
       </actions>
     </cue>
 

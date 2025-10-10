@@ -74,3 +74,5 @@ XCat/
 monitor-x4-logs.ps1
 view-x4-logs.ps1
 .emmyrc.json
+
+generated/

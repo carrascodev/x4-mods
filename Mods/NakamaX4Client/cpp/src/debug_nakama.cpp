@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-// Define the function signature for luaopen_nakama_x4
+// Define the function signature for luaopen_test_script_x4
 typedef int (*LuaOpenFunction)(void* L);
 
 // Define the function signature for nakama_init
@@ -29,16 +29,16 @@ int main() {
     }
     std::cout << "SUCCESS: nakama_x4.dll loaded at address: " << nakamaModule << std::endl;
     
-    // Step 2: Try to get the luaopen_nakama_x4 function
-    std::cout << "\nStep 2: Finding luaopen_nakama_x4 function..." << std::endl;
-    LuaOpenFunction luaopen_func = (LuaOpenFunction)GetProcAddress(nakamaModule, "luaopen_nakama_x4");
+    // Step 2: Try to get the luaopen_test_script_x4 function
+    std::cout << "\nStep 2: Finding luaopen_test_script_x4 function..." << std::endl;
+    LuaOpenFunction luaopen_func = (LuaOpenFunction)GetProcAddress(nakamaModule, "luaopen_test_script_x4");
     if (!luaopen_func) {
         DWORD error = GetLastError();
-        std::cout << "ERROR: Failed to find luaopen_nakama_x4 function, error code: " << error << std::endl;
+        std::cout << "ERROR: Failed to find luaopen_test_script_x4 function, error code: " << error << std::endl;
         FreeLibrary(nakamaModule);
         return 1;
     }
-    std::cout << "SUCCESS: luaopen_nakama_x4 function found at address: " << luaopen_func << std::endl;
+    std::cout << "SUCCESS: luaopen_test_script_x4 function found at address: " << luaopen_func << std::endl;
     
     // Step 2.5: Try to get the nakama_init function
     std::cout << "\nStep 2.5: Finding nakama_init function..." << std::endl;
@@ -69,15 +69,15 @@ int main() {
         }
     }
     
-    // Step 4: Try to call luaopen_nakama_x4 (this is where it probably crashes)
-    std::cout << "\nStep 4: Attempting to call luaopen_nakama_x4..." << std::endl;
+    // Step 4: Try to call luaopen_test_script_x4 (this is where it probably crashes)
+    std::cout << "\nStep 4: Attempting to call luaopen_test_script_x4..." << std::endl;
     std::cout << "WARNING: This might crash! If it does, we know the issue is in the function itself." << std::endl;
     
     __try {
         // We'll pass NULL as the Lua state since we're just testing if the function can be called
-        std::cout << "Calling luaopen_nakama_x4(NULL)..." << std::endl;
+        std::cout << "Calling luaopen_test_script_x4(NULL)..." << std::endl;
         int result = luaopen_func(nullptr);
-        std::cout << "SUCCESS: luaopen_nakama_x4 returned: " << result << std::endl;
+        std::cout << "SUCCESS: luaopen_test_script_x4 returned: " << result << std::endl;
     }
     __except(EXCEPTION_EXECUTE_HANDLER) {
         DWORD exceptionCode = GetExceptionCode();

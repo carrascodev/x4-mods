@@ -21,7 +21,7 @@ local C = ffi.C
 
 -- Import lib functions and check if nakama dll is available.
 local Lib = require("extensions.sn_mod_support_apis.ui.Library")
-local lua_nakama = require("extensions.NakamaX4Client.lua.nakama_lib")
+local nakama_dll = require("extensions.NakamaX4Client.lua.nakama_lib")
 
 -- Import UI event functions
 

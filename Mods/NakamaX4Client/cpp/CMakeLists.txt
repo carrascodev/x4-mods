@@ -146,21 +146,43 @@ add_custom_target(build-help
     VERBATIM
 )
 
+# Generate Lua wrappers and C++ exports
+set(GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/generated")
+set(HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/public")
+
+# Custom command to generate Lua wrappers
+add_custom_command(
+    OUTPUT ${GENERATED_DIR}/generated_files.cmake
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${GENERATED_DIR}
+    COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py
+        ${HEADER_DIR}
+        --output_dir ${GENERATED_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py ${HEADER_DIR}/test_script.h
+    COMMENT "Generating Lua wrappers from header files marked with LUA_EXPORT"
+    VERBATIM
+)
+
+# Include the generated files list
+include(${GENERATED_DIR}/generated_files.cmake)
+
+# Target to ensure wrappers are generated before building
+add_custom_target(generate_wrappers DEPENDS ${GENERATED_DIR}/generated_files.cmake)
+
 # Nakama X4 DLL for Lua integration
 add_library(nakama_x4 SHARED
-    src/nakama_x4_dll.cpp
-    src/LogToX4.cpp
+    src/private/nakama_x4_client.cpp
+    src/private/log_to_x4.cpp
+    ${GENERATED_WRAPPERS}
 )
+
+add_dependencies(nakama_x4 generate_wrappers)
 
 target_include_directories(nakama_x4 PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/public
     ${NAKAMA_INCLUDE_DIR}
     ${LUA_INCLUDE_DIR}
 )
-
-if (MSVC)
-target_link_options(nakama_x4 PRIVATE "/EXPORT:luaopen_nakama_x4")
-endif()
 
 target_link_libraries(nakama_x4 PRIVATE 
     ${NAKAMA_LIBRARY}
