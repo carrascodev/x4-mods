@@ -19,6 +19,22 @@ local Lib = require("extensions.sn_mod_support_apis.ui.Library")
 local nakamaLib = require("extensions.NakamaX4Client.lua.nakama_lib")
 local logLib = require("extensions.NakamaX4Client.lua.log_lib")
 
+local function LogError(msg)
+    if logLib and logLib.Log then
+        logLib.Log("[ERROR] " .. msg)
+    else
+        DebugError("[ERROR] " .. msg)
+    end
+end
+
+local function LogInfo(msg)
+    if logLib and logLib.Log then
+        logLib.Log("[INFO] " .. msg)
+    else
+        DebugError("[INFO] " .. msg)
+    end
+end
+
 
 
 -- Import UI event functions
@@ -35,9 +51,6 @@ local L = {
         print_to_log = true,
     },
 }
-
-local LogError = logLib.LogError
-local LogInfo = function(msg) if L.debug.print_to_log then logLib.LogInfo(msg) end end
 
 -- Shared function to raise an md signal with an optional return value.
 function L.Raise_Signal(name, return_value)
@@ -86,17 +99,17 @@ function L.Init_Nakama(host, port, server_key, use_ssl)
     end
 
     DebugError("[Nakama] DLL loaded, calling nakama_init...")
-    local result = nakamaLib.Initialize(host or "127.0.0.1", port or 7350, server_key or "defaultkey", use_ssl or false)
+    local result, error = nakamaLib.Initialize(host or "127.0.0.1", port or 7350, server_key or "defaultkey", use_ssl or false)
     DebugError("[Nakama] nakama_init returned: " .. tostring(result))
 
-    if result.success then
+    if result then
         L.initialized = true
         L.last_error = ""
         LogInfo("[Nakama] Init successful")
         L.Authenticate_Player(L.player_id, "Player" .. tostring(L.player_id)) -- Auto-auth with defaults.
         return true
     else
-        L.last_error = result.errorMessage or "Unknown error"
+        L.last_error = error or "Unknown error"
         LogError("[Nakama] Init failed: " .. L.last_error)
         return false
     end
@@ -130,15 +143,15 @@ function L.Authenticate_Player(device_id, username)
         device_id = "x4-device-" .. L.Generate_Device_ID(L.player_id)
     end
 
-    local result = nakamaLib.Authenticate(device_id, username or "TestPlayer")
-    if result.success then
+    local result, error = nakamaLib.Authenticate(device_id, username or "TestPlayer")
+    if result then
         L.authenticated = true
         L.last_error = ""
         LogInfo("[Nakama] Authentication successful")
         L.Raise_Signal("auth_complete", "success")
         return true
     else
-        L.last_error = result.errorMessage or "Authentication failed"
+        L.last_error = error or "Authentication failed"
         LogError("[Nakama] Authentication failed: " .. L.last_error)
         return false
     end
@@ -150,17 +163,17 @@ function L.Sync_Player_Data(credits, playtime)
         return false
     end
 
-    local result = nakamaLib.SyncPlayerData(
+    local result, error = nakamaLib.SyncPlayerData(
         "Player" .. tostring(L.player_id),
         credits or 0,
         playtime or 0
     )
-    if result.success then
+    if result then
         L.last_error = ""
         LogInfo("[Nakama] Player data sync successful")
         return true
     else
-        L.last_error = result.errorMessage or "Sync failed"
+        L.last_error = error or "Sync failed"
         LogError("[Nakama] Player data sync failed: " .. L.last_error)
         return false
     end

@@ -39,25 +39,6 @@ if package ~= nil and package.config:sub(1,1) == "\\" and GetUISafeModeOption() 
     end
 end
 
-local function LogError(msg)
-    if L and L.Log and L.Log then
-        L.Log("[ERROR] " .. msg)
-    else
-        DebugError("[ERROR] " .. msg)
-    end
-end
-
-local function LogInfo(msg)
-    if L and L.Log and L.Log then
-        L.Log("[INFO] " .. msg)
-    else
-        DebugError("[INFO] " .. msg)
-    end
-end
-
 Register_Require_Response("extensions.NakamaX4Client.lua.log_lib", L)
 
-return {
-    LogError = LogError,
-    LogInfo = LogInfo,
-}
+return L

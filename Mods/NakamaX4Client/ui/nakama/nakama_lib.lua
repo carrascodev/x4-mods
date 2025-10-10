@@ -14,7 +14,7 @@ local L = nil
 local function Load_Dll()
     local lib, err = package.loadlib(
         "D:\\Games\\X4 Foundations\\extensions\\NakamaX4Client\\ui\\nakama\\nakama_x4.dll", 
-        "luaopen_nakama_x4_client_x4")
+        "luaopen_nakama_x4_client")
     
     if lib then
         DebugError("[Nakama] DLL loaded successfully, calling luaopen_nakama_x4_client_x4")
