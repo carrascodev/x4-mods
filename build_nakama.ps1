@@ -56,7 +56,7 @@ Push-Location $BuildDir
 try {
     & cmake --build . --config $BuildType
     if ($LASTEXITCODE -ne 0) {
-        throw "Build failed"
+        throw "Build failed. Check the output for errors."
     }
 }
 finally {
