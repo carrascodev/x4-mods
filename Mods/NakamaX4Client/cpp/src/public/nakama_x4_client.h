@@ -5,6 +5,7 @@
 #include <memory>
 #include <future>
 #include <atomic>
+#include <functional>
 
 // Nakama X4 Client class - encapsulates all Nakama functionality
 class NakamaX4Client : public X4ScriptSingleton<NakamaX4Client> {
@@ -29,6 +30,9 @@ public:
         std::string errorMessage;
     };
 
+    // Callback function type for Lua updates
+    using UpdateCallback = std::list<std::function<void()>>;
+
     friend class X4ScriptSingleton<NakamaX4Client>;
 
     // Public API methods
@@ -36,39 +40,34 @@ public:
     bool Initialize(const Config& config);
     // LUA_EXPORT
     void Shutdown() override;
+    
     // LUA_EXPORT
     AuthResult Authenticate(const std::string& deviceId, const std::string& username);
     // LUA_EXPORT
     SyncResult SyncPlayerData(const std::string& playerName, long long credits, long long playtime);
     // LUA_EXPORT
     bool IsAuthenticated() const;
-    //
-    void Tick(); // Call this regularly to process async operations
-    
-    // Status and error reporting
-    const char* GetLastError() const;
-    const char* GetStatus() const;
 
 private:
-public:
-    NakamaX4Client();
-    ~NakamaX4Client() override = default;
-
+    std::thread StartUpdater();
     // Nakama SDK objects
     std::shared_ptr<Nakama::NClientInterface> m_client;
     std::shared_ptr<Nakama::NSessionInterface> m_session;
 
+    std::thread m_updaterThread;
+    std::chrono::steady_clock::time_point m_lastUpdateTime;
+
     // Async operation handling
     std::atomic<bool> m_authenticating;
     std::atomic<bool> m_syncing;
-    
-    // Error and status tracking
-    mutable std::string m_lastError;
-    mutable std::string m_status;
+
+    AuthResult PerformAuthentication(const std::string& deviceId, const std::string& username);
+    SyncResult PerformDataSync(const std::string& playerName, long long credits, long long playtime);
+public:
+    NakamaX4Client();
+    ~NakamaX4Client() override = default;
 
     // Helper methods
     bool CreateClient(const Config& config);
-    AuthResult PerformAuthentication(const std::string& deviceId, const std::string& username);
-    SyncResult PerformDataSync(const std::string& playerName, long long credits, long long playtime);
     void Update(float deltaTime) override;
 };
