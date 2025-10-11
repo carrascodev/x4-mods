@@ -1,4 +1,5 @@
 #include "../public/nakama_x4_client.h"
+#include "../public/nakama_realtime_client.h"
 #include "../public/x4_script_base.h"
 #include "../public/log_to_x4.h"
 #include <chrono>
@@ -41,6 +42,12 @@ void NakamaX4Client::Shutdown()
 
     LogInfo("Shutting down Nakama client");
 
+    auto* realtimeClient = NakamaRealtimeClient::GetInstance();
+    if (realtimeClient && realtimeClient->IsInitialized())
+    {
+        realtimeClient->Shutdown();
+    }
+
     m_session.reset();
     m_client.reset();
 
@@ -72,6 +79,13 @@ void NakamaX4Client::Update(float deltaTime)
 {
     // Call base class Update to handle callbacks
     X4ScriptBase::Update(deltaTime);
+
+    // Update realtime client
+    auto* realtimeClient = NakamaRealtimeClient::GetInstance();
+    if (realtimeClient)
+    {
+        realtimeClient->Update(deltaTime);
+    }
 
     // Process any pending async operations
     // This could be expanded to handle timeouts, retries, etc.
@@ -164,9 +178,17 @@ NakamaX4Client::AuthResult NakamaX4Client::PerformAuthentication(const std::stri
             m_session = session;
             m_authenticating = false;
 
-            LogInfo("Connecting real-time client...");
-            m_rtClient = m_client->createRtClient();
-            m_rtClient->connectAsync(m_session, true);
+            LogInfo("Initializing realtime client...");
+            auto* realtimeClient = NakamaRealtimeClient::GetInstance();
+            if (realtimeClient->Initialize(m_session, m_client))
+            {
+                LogInfo("Realtime client initialized successfully");
+            }
+            else
+            {
+                LogWarning("Failed to initialize realtime client");
+            }
+
             future->set_value({true, ""});
         };
 
@@ -287,15 +309,29 @@ bool NakamaX4Client::IsAuthenticated() const
 
 bool NakamaX4Client::JoinOrCreateMatch(const std::string &matchId)
 {
-    return false;
+    auto* realtimeClient = NakamaRealtimeClient::GetInstance();
+    if (!realtimeClient)
+    {
+        LogError("Realtime client not available");
+        return false;
+    }
+    return realtimeClient->JoinOrCreateMatch(matchId);
 }
 
 void NakamaX4Client::SendPosition(const std::string &data)
 {
-    // Send position data to the match
+    auto* realtimeClient = NakamaRealtimeClient::GetInstance();
+    if (realtimeClient)
+    {
+        realtimeClient->SendPosition(data);
+    }
 }
 
 void NakamaX4Client::LeaveMatch()
 {
-    // Leave the current match
+    auto* realtimeClient = NakamaRealtimeClient::GetInstance();
+    if (realtimeClient)
+    {
+        realtimeClient->LeaveMatch();
+    }
 }

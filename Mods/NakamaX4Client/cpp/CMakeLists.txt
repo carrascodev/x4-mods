@@ -171,6 +171,7 @@ add_custom_target(generate_wrappers DEPENDS ${GENERATED_DIR}/generated_files.cma
 # Nakama X4 DLL for Lua integration
 add_library(nakama_x4 SHARED
     src/private/nakama_x4_client.cpp
+    src/private/nakama_realtime_client.cpp
     src/private/log_to_x4.cpp
     src/private/lua_bindings.cpp
     ${GENERATED_WRAPPERS}
