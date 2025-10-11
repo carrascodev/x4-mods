@@ -106,7 +106,7 @@ function L.Init_Nakama(host, port, server_key, use_ssl)
         L.initialized = true
         L.last_error = ""
         LogInfo("[Nakama] Init successful")
-        L.Authenticate_Player(L.player_id, "Player" .. tostring(L.player_id)) -- Auto-auth with defaults.
+        L.Authenticate_Player(L.Generate_Device_ID(L.player_id), "Player" .. tostring(L.player_id)) -- Auto-auth with proper device ID
         return true
     else
         L.last_error = error or "Unknown error"

@@ -47,6 +47,12 @@ public:
     SyncResult SyncPlayerData(const std::string& playerName, long long credits, long long playtime);
     // LUA_EXPORT
     bool IsAuthenticated() const;
+    // LUA_EXPORT
+    bool JoinOrCreateMatch(const std::string& matchId = "");
+    // LUA_EXPORT
+    void SendPosition(const std::string& data);
+    // LUA_EXPORT
+    void LeaveMatch();
 
 private:
     std::thread StartUpdater();
@@ -60,6 +66,9 @@ private:
     // Async operation handling
     std::atomic<bool> m_authenticating;
     std::atomic<bool> m_syncing;
+
+    std::shared_ptr<Nakama::NRtClientInterface> m_rtClient;  // Realtime client
+    std::string m_matchId;  // Current match ID
 
     AuthResult PerformAuthentication(const std::string& deviceId, const std::string& username);
     SyncResult PerformDataSync(const std::string& playerName, long long credits, long long playtime);

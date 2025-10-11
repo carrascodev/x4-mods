@@ -4,24 +4,25 @@
 #include <chrono>
 #include <thread>
 #include <ctime>
-#include "nakama_x4_client.h"
+#include <atomic>
 
 NakamaX4Client::NakamaX4Client()
-    : X4ScriptSingleton("NakamaX4Client")
-    , m_authenticating(false)
-    , m_syncing(false)
-    , m_lastUpdateTime(std::chrono::steady_clock::now()) {
+    : X4ScriptSingleton("NakamaX4Client"), m_authenticating(false), m_syncing(false), m_lastUpdateTime(std::chrono::steady_clock::now())
+{
 }
 
-bool NakamaX4Client::Initialize(const Config& config) {
-    if (IsInitialized()) {
+bool NakamaX4Client::Initialize(const Config &config)
+{
+    if (IsInitialized())
+    {
         LogWarning("Already initialized");
         return true;
     }
 
     LogInfo("Initializing Nakama client (host=%s, port=%d)", config.host.c_str(), config.port);
 
-    if (!CreateClient(config)) {
+    if (!CreateClient(config))
+    {
         LogError("Failed to create Nakama client");
         return false;
     }
@@ -31,8 +32,10 @@ bool NakamaX4Client::Initialize(const Config& config) {
     return true;
 }
 
-void NakamaX4Client::Shutdown() {
-    if (!IsInitialized()) {
+void NakamaX4Client::Shutdown()
+{
+    if (!IsInitialized())
+    {
         return;
     }
 
@@ -43,13 +46,16 @@ void NakamaX4Client::Shutdown() {
 
     m_authenticating = false;
     m_syncing = false;
+    m_updaterThread.join();
 
     SetInitialized(false);
     LogInfo("Nakama client shutdown complete");
 }
 
-std::thread NakamaX4Client::StartUpdater() {
-    return std::thread([this]() {
+std::thread NakamaX4Client::StartUpdater()
+{
+    return std::thread([this]()
+                       {
         while (m_client != nullptr) {
 
             auto currentTime = std::chrono::steady_clock::now();
@@ -59,11 +65,11 @@ std::thread NakamaX4Client::StartUpdater() {
             m_client->tick();
             Update(deltaTime.count());
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
-    });
+        } });
 }
 
-void NakamaX4Client::Update(float deltaTime) {
+void NakamaX4Client::Update(float deltaTime)
+{
     // Call base class Update to handle callbacks
     X4ScriptBase::Update(deltaTime);
 
@@ -71,8 +77,10 @@ void NakamaX4Client::Update(float deltaTime) {
     // This could be expanded to handle timeouts, retries, etc.
 }
 
-bool NakamaX4Client::CreateClient(const Config& config) {
-    try {
+bool NakamaX4Client::CreateClient(const Config &config)
+{
+    try
+    {
         // Reset state
         m_client.reset();
         m_session.reset();
@@ -89,10 +97,13 @@ bool NakamaX4Client::CreateClient(const Config& config) {
         // Create the client
         m_client = Nakama::createDefaultClient(parameters);
 
-        if (m_client) {
+        if (m_client)
+        {
             LogInfo("Nakama client created successfully");
             return true;
-        } else {
+        }
+        else
+        {
             LogError("Failed to create Nakama client");
             return false;
         }
@@ -100,22 +111,27 @@ bool NakamaX4Client::CreateClient(const Config& config) {
         m_updaterThread = StartUpdater();
         m_updaterThread.detach();
     }
-    catch (const std::exception& e) {
+    catch (const std::exception &e)
+    {
         LogError("Exception creating Nakama client: %s", e.what());
         return false;
     }
-    catch (...) {
+    catch (...)
+    {
         LogError("Unknown exception creating Nakama client");
         return false;
     }
 }
 
-NakamaX4Client::AuthResult NakamaX4Client::Authenticate(const std::string& deviceId, const std::string& username) {
-    if (!IsInitialized()) {
+NakamaX4Client::AuthResult NakamaX4Client::Authenticate(const std::string &deviceId, const std::string &username)
+{
+    if (!IsInitialized())
+    {
         return {false, "Client not initialized"};
     }
 
-    if (m_authenticating) {
+    if (m_authenticating)
+    {
         return {false, "Authentication already in progress"};
     }
 
@@ -123,61 +139,63 @@ NakamaX4Client::AuthResult NakamaX4Client::Authenticate(const std::string& devic
     return PerformAuthentication(deviceId, username);
 }
 
-NakamaX4Client::AuthResult NakamaX4Client::PerformAuthentication(const std::string& deviceId, const std::string& username) {
-    if (!m_client) {
+NakamaX4Client::AuthResult NakamaX4Client::PerformAuthentication(const std::string &deviceId, const std::string &username)
+{
+    if (!m_client)
+    {
         return {false, "Client not available"};
     }
 
     m_authenticating = true;
 
-    try {
+    try
+    {
         LogInfo("Authenticating with Nakama...");
 
-        auto future = std::make_shared<std::promise<AuthResult>>();
-
-        auto successCallback = [this, future](Nakama::NSessionPtr session) {
+        auto successCallback = [this](Nakama::NSessionPtr session)
+        {
             LogInfo("Authentication successful");
             m_session = session;
             m_authenticating = false;
-            future->set_value({true, ""});
+
+            LogInfo("Connecting real-time client...");
+            m_rtClient = m_client->createRtClient();
+            m_rtClient->connectAsync(m_session, true);
         };
 
-        auto errorCallback = [this, future](const Nakama::NError& error) {
+        auto errorCallback = [this](const Nakama::NError &error)
+        {
             LogError("Authentication failed: %s", error.message.c_str());
             m_authenticating = false;
-            future->set_value({false, error.message});
         };
 
         // Use device authentication
-        m_client->authenticateDevice(deviceId, username, true, {}, successCallback, errorCallback);
+        m_client->authenticateDevice(deviceId, username, false, {}, successCallback, errorCallback);
 
-        // Wait for result with timeout
-        auto future_status = future->get_future().wait_for(std::chrono::seconds(10));
-        if (future_status == std::future_status::timeout) {
-            LogError("Authentication timeout");
-            m_authenticating = false;
-            return {false, "Authentication timeout"};
-        }
-
-        return future->get_future().get();
+        return {true, "Authentication in progress"};
     }
-    catch (const std::exception& e) {
+    catch (const std::exception &e)
+    {
         LogError("Authentication exception: %s", e.what());
         m_authenticating = false;
         return {false, std::string("Exception: ") + e.what()};
     }
 }
 
-NakamaX4Client::SyncResult NakamaX4Client::SyncPlayerData(const std::string& playerName, long long credits, long long playtime) {
-    if (!IsInitialized()) {
+NakamaX4Client::SyncResult NakamaX4Client::SyncPlayerData(const std::string &playerName, long long credits, long long playtime)
+{
+    if (!IsInitialized())
+    {
         return {false, "Client not initialized"};
     }
 
-    if (m_syncing) {
+    if (m_syncing)
+    {
         return {false, "Sync already in progress"};
     }
 
-    if (!m_session) {
+    if (!m_session)
+    {
         return {false, "Not authenticated"};
     }
 
@@ -185,28 +203,35 @@ NakamaX4Client::SyncResult NakamaX4Client::SyncPlayerData(const std::string& pla
     return PerformDataSync(playerName, credits, playtime);
 }
 
-NakamaX4Client::SyncResult NakamaX4Client::PerformDataSync(const std::string& playerName, long long credits, long long playtime) {
+NakamaX4Client::SyncResult NakamaX4Client::PerformDataSync(const std::string &playerName, long long credits, long long playtime)
+{
     m_syncing = true;
 
-    try {
+    try
+    {
         LogInfo("Syncing player data...");
 
         // Create JSON data
         std::string json_data = "{"
-                                "\"credits\":" + std::to_string(credits) + ","
-                                "\"playtime\":" + std::to_string(playtime) + ","
-                                "\"last_update\":" + std::to_string(std::time(nullptr)) +
+                                "\"credits\":" +
+                                std::to_string(credits) + ","
+                                                          "\"playtime\":" +
+                                std::to_string(playtime) + ","
+                                                           "\"last_update\":" +
+                                std::to_string(std::time(nullptr)) +
                                 "}";
 
         auto future = std::make_shared<std::promise<SyncResult>>();
 
-        auto successCallback = [this, future](const Nakama::NStorageObjectAcks& acks) {
+        auto successCallback = [this, future](const Nakama::NStorageObjectAcks &acks)
+        {
             LogInfo("Data sync successful");
             m_syncing = false;
             future->set_value({true, ""});
         };
 
-        auto errorCallback = [this, future](const Nakama::NError& error) {
+        auto errorCallback = [this, future](const Nakama::NError &error)
+        {
             LogError("Data sync failed: %s", error.message.c_str());
             m_syncing = false;
             future->set_value({false, error.message});
@@ -224,7 +249,8 @@ NakamaX4Client::SyncResult NakamaX4Client::PerformDataSync(const std::string& pl
 
         // Wait for result with timeout
         auto future_status = future->get_future().wait_for(std::chrono::seconds(5));
-        if (future_status == std::future_status::timeout) {
+        if (future_status == std::future_status::timeout)
+        {
             LogError("Data sync timeout");
             m_syncing = false;
             return {false, "Sync timeout"};
@@ -232,13 +258,30 @@ NakamaX4Client::SyncResult NakamaX4Client::PerformDataSync(const std::string& pl
 
         return future->get_future().get();
     }
-    catch (const std::exception& e) {
+    catch (const std::exception &e)
+    {
         LogError("Data sync exception: %s", e.what());
         m_syncing = false;
         return {false, std::string("Exception: ") + e.what()};
     }
 }
 
-bool NakamaX4Client::IsAuthenticated() const {
+bool NakamaX4Client::IsAuthenticated() const
+{
     return m_session != nullptr;
+}
+
+bool NakamaX4Client::JoinOrCreateMatch(const std::string &matchId)
+{
+    return false;
+}
+
+void NakamaX4Client::SendPosition(const std::string &data)
+{
+    // Send position data to the match
+}
+
+void NakamaX4Client::LeaveMatch()
+{
+    // Leave the current match
 }
