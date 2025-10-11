@@ -5,8 +5,9 @@ transport:
 logger:
   level: "info"                   # Log level (debug, info, warn, error)
 database:
-  address: "postgres:5432"        # PostgreSQL database
-  user: "admin"
+  address:
+    - "postgres:localdb@postgres:5432/nakama"  # PostgreSQL database
+  user: "postgres"
   password: "localdb"
   name: "nakama"
   max_open_conns: 100
@@ -16,10 +17,9 @@ console:
   username: "admin"
   password: "password"
 runtime:
-  env: "dev"                      # Development mode
   path: "/nakama/data/modules"    # Path to custom Go plugins
   http_key: "runtime-key"
 session:
-  token_expiry_sec: 86400         # Session token expiration (24 hours)
+  token_expiry_sec: 31536000         # Session token expiration (1 year, effectively never)
 socket:
   port: 7350                      # WebSocket API port

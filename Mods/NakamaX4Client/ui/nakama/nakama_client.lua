@@ -120,7 +120,7 @@ end
 function L.Generate_Device_ID(player_id)
     -- Convert player ID to a proper device ID format
     -- Ensure it's at least 10 characters and unique per player
-    local base_id = tostring(player_id or L.player_id)
+    local base_id = tostring(player_id)
     local device_id = "x4-player-" .. base_id
 
     -- Ensure minimum length of 10 characters
@@ -136,11 +136,6 @@ function L.Authenticate_Player(device_id, username)
     if not nakamaLib or not L.initialized then
         L.last_error = "Not initialized"
         return false
-    end
-
-    -- Use persistent device ID based on player ID if not provided
-    if not device_id then
-        device_id = "x4-device-" .. L.Generate_Device_ID(L.player_id)
     end
 
     local result, error = nakamaLib.Authenticate(device_id, username or "TestPlayer")

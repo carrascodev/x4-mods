@@ -100,6 +100,8 @@ bool NakamaX4Client::CreateClient(const Config &config)
         if (m_client)
         {
             LogInfo("Nakama client created successfully");
+            m_updaterThread = StartUpdater();
+            m_updaterThread.detach();
             return true;
         }
         else
@@ -107,9 +109,6 @@ bool NakamaX4Client::CreateClient(const Config &config)
             LogError("Failed to create Nakama client");
             return false;
         }
-
-        m_updaterThread = StartUpdater();
-        m_updaterThread.detach();
     }
     catch (const std::exception &e)
     {
@@ -152,27 +151,41 @@ NakamaX4Client::AuthResult NakamaX4Client::PerformAuthentication(const std::stri
     {
         LogInfo("Authenticating with Nakama...");
 
-        auto successCallback = [this](Nakama::NSessionPtr session)
+        auto future = std::make_shared<std::promise<AuthResult>>();
+
+        auto successCallback = [this, future](Nakama::NSessionPtr session)
         {
-            LogInfo("Authentication successful");
+            LogInfo("Authentication successful - Session created: %s", session ? "YES" : "NO");
+            if (session) {
+                LogInfo("Session user ID: %s", session->getUserId().c_str());
+                LogInfo("Session username: %s", session->getUsername().c_str());
+                LogInfo("Session token: %s", session->getAuthToken().substr(0, 20).c_str());
+            }
             m_session = session;
             m_authenticating = false;
 
             LogInfo("Connecting real-time client...");
             m_rtClient = m_client->createRtClient();
             m_rtClient->connectAsync(m_session, true);
+            future->set_value({true, ""});
         };
 
-        auto errorCallback = [this](const Nakama::NError &error)
+        auto errorCallback = [this, future](const Nakama::NError &error)
         {
-            LogError("Authentication failed: %s", error.message.c_str());
+            LogError("Authentication failed: %s (code: %d)", error.message.c_str(), error.code);
             m_authenticating = false;
+            future->set_value({false, error.message});
         };
 
         // Use device authentication
-        m_client->authenticateDevice(deviceId, username, false, {}, successCallback, errorCallback);
 
-        return {true, "Authentication in progress"};
+        m_client->authenticateDevice(deviceId, username, true, {}, successCallback, errorCallback);
+
+        auto fut = future->get_future();
+        auto future_status = fut.wait_for(std::chrono::seconds(20));
+
+        m_authenticating = false;
+        return fut.get();
     }
     catch (const std::exception &e)
     {
@@ -248,7 +261,8 @@ NakamaX4Client::SyncResult NakamaX4Client::PerformDataSync(const std::string &pl
         m_client->writeStorageObjects(m_session, objects, successCallback, errorCallback);
 
         // Wait for result with timeout
-        auto future_status = future->get_future().wait_for(std::chrono::seconds(5));
+        auto fut = future->get_future();
+        auto future_status = fut.wait_for(std::chrono::seconds(5));
         if (future_status == std::future_status::timeout)
         {
             LogError("Data sync timeout");
@@ -256,7 +270,7 @@ NakamaX4Client::SyncResult NakamaX4Client::PerformDataSync(const std::string &pl
             return {false, "Sync timeout"};
         }
 
-        return future->get_future().get();
+        return fut.get();
     }
     catch (const std::exception &e)
     {

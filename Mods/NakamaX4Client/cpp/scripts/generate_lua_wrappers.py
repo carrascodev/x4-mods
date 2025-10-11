@@ -64,6 +64,8 @@ def parse_cpp_function_signature(line: str) -> FunctionSignature:
                 if len(parts) >= 2:
                     param_type = ' '.join(parts[:-1])
                     param_name = parts[-1]
+                    # Strip default value if present (e.g., "param = default" -> "param")
+                    param_name = param_name.split('=')[0].strip()
                     params.append((param_type, param_name))
 
     return FunctionSignature(return_type, func_name, params)
