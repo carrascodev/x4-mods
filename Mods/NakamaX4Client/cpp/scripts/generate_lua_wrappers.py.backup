@@ -1,0 +1,359 @@
+#!/usr/bin/env python3
+"""
+Lua Wrapper Generator for X4 C++ Scripts
+
+This script scans C++ header files for functions marked with // LUA_EXPORT
+and generates Lua wrapper functions automatically.
+"""
+
+import re
+import argparse
+import os
+from typing import List, Dict, Tu    reg_entries = []
+    for func in functions:
+        # Skip functions with complex parameters we can't handle
+        skip_func = False
+        for param_type, param_name in func.params:
+            if "&" in param_type and not "std::string" in param_type and not "Config" in param_type:
+                skip_func = True
+                break
+        if not skip_func:
+            reg_entries.append(f'    {{"{func.name}", lua_{func.name}}},')ss FunctionSignature:
+    def __init__(self, return_type: str, name: str, params: List[Tuple[str, str]]):
+        self.return_type = return_type.strip()
+        self.name = name.strip()
+        self.params = params
+
+    def __str__(self):
+        param_str = ", ".join(f"{t} {n}" for t, n in self.params)
+        return f"{self.return_type} {self.name}({param_str})"
+
+def parse_cpp_function_signature(line: str) -> FunctionSignature:
+    """Parse a C++ function signature from a string."""
+    # Remove any leading/trailing whitespace and semicolons
+    line = line.strip().rstrip(';')
+    
+    # Remove any macros like NAKAMA_X4_API
+    line = re.sub(r'\b\w+_API\s+', '', line)
+    
+    # Match function signature pattern - handle const pointers and complex types
+    pattern = r'^((?:const\s+)?\w+(?:\s*\*)*)\s+(\w+)\s*\((.*)\)$'
+    match = re.match(pattern, line)
+
+    if not match:
+        raise ValueError(f"Invalid function signature: {line}")
+
+    return_type = match.group(1)
+    func_name = match.group(2)
+    params_str = match.group(3).strip()
+
+    # Parse parameters
+    params = []
+    if params_str and params_str != "void":
+        # Split by comma, but be careful with template types
+        param_list = split_params(params_str)
+        for param in param_list:
+            param = param.strip()
+            if param:
+                # Split type and name (handle pointers, const, etc.)
+                parts = param.split()
+                if len(parts) >= 2:
+                    param_type = ' '.join(parts[:-1])
+                    param_name = parts[-1]
+                    params.append((param_type, param_name))
+
+    return FunctionSignature(return_type, func_name, params)
+
+def scan_header_files_for_exports(header_dir: str) -> List[FunctionSignature]:
+    """Scan .h files in the given directory for functions marked with // LUA_EXPORT."""
+    functions = []
+    
+    # Find all .h files in the directory
+    for filename in os.listdir(header_dir):
+        if filename.endswith('.h'):
+            filepath = os.path.join(header_dir, filename)
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                
+                # Process lines to find LUA_EXPORT marked functions
+                i = 0
+                while i < len(lines):
+                    line = lines[i].strip()
+                    
+                    # Look for // LUA_EXPORT comment
+                    if line == "// LUA_EXPORT":
+                        # Next line should contain the function declaration
+                        if i + 1 < len(lines):
+                            func_line = lines[i + 1].strip()
+                            # Skip empty lines
+                            j = i + 2
+                            while j < len(lines) and not func_line:
+                                func_line = lines[j].strip()
+                                j += 1
+                            
+                            if func_line and not func_line.startswith('//'):
+                                try:
+                                    func = parse_cpp_function_signature(func_line)
+                                    functions.append(func)
+                                    print(f"Found LUA_EXPORT function: {func}")
+                                except ValueError as e:
+                                    print(f"Warning: Could not parse function signature '{func_line}': {e}")
+                    
+                    i += 1
+                    
+            except Exception as e:
+                print(f"Warning: Could not read file {filepath}: {e}")
+    
+    return functions
+
+def split_params(params_str: str) -> List[str]:
+    """Split parameter string by commas, respecting templates and parentheses."""
+    params = []
+    current = ""
+    level = 0
+
+    for char in params_str:
+        if char == ',' and level == 0:
+            params.append(current)
+            current = ""
+        else:
+            current += char
+            if char in '<([':
+                level += 1
+            elif char in '>)':
+                level -= 1
+
+    if current:
+        params.append(current)
+
+    return params
+
+def generate_cpp_export(func: FunctionSignature, class_name: str = "") -> str:
+    """Generate a C++ export function for the given C++ function."""
+    export_func_name = func.name
+
+    # Generate parameter declarations
+    param_decls = []
+    param_extracts = []
+
+    for param_type, param_name in func.params:
+        if "const char*" in param_type:
+            param_decls.append(f'const char* {param_name}')
+            param_extracts.append(f'{param_name}')
+        elif param_type == "std::string":
+            param_decls.append(f'const char* {param_name}')
+            param_extracts.append(f'{param_name}')
+        elif "int" in param_type or "long" in param_type:
+            param_decls.append(f'{param_type} {param_name}')
+            param_extracts.append(f'{param_name}')
+        elif "bool" in param_type:
+            param_decls.append(f'bool {param_name}')
+            param_extracts.append(f'{param_name}')
+        else:
+            param_decls.append(f'{param_type} {param_name}')
+            param_extracts.append(f'{param_name}')
+
+    param_str = ", ".join(param_decls)
+
+    # Generate function call
+    if class_name:
+        call = f"{class_name}::GetInstance()->{func.name}({', '.join(param_extracts)})"
+    else:
+        call = f"{func.name}({', '.join(param_extracts)})"
+
+    # Generate return value handling
+    if func.return_type == "void":
+        return_stmt = ""
+        body = f"    {call};"
+    elif func.return_type in ["int", "long", "long long"]:
+        return_stmt = f"    return result;"
+        body = f"    auto result = {call};"
+    elif func.return_type == "bool":
+        return_stmt = f"    return result;"
+        body = f"    auto result = {call};"
+    elif func.return_type == "AuthResult":
+        return_stmt = f"    return result.success ? 1 : 0;"
+        body = f"    auto result = {call};"
+    elif func.return_type == "SyncResult":
+        return_stmt = f"    return result.success ? 1 : 0;"
+        body = f"    auto result = {call};"
+    else:
+        return_stmt = f"    // TODO: Handle return type {func.return_type}\n    return 0;"
+        body = f"    // TODO: Handle call {call}"
+
+    # Generate the complete export function
+    export = f"""NAKAMA_X4_API {func.return_type} {export_func_name}({param_str})
+{{
+{body}
+{return_stmt}
+}}
+
+"""
+
+    return export
+
+def generate_lua_wrapper(func: FunctionSignature, class_name: str = "") -> str:
+    """Generate a Lua wrapper function for the given C++ function."""
+    
+    # Skip functions with complex parameters we can't handle yet
+    for param_type, param_name in func.params:
+        if "Config" in param_type or ("&" in param_type and not "std::string" in param_type):
+            # Special handling for Config struct
+            if "Config" in param_type:
+                continue  # We'll handle this below
+            else:
+                return f"// Skipped {func.name} - complex parameter type {param_type}\n\n"
+    
+    lua_func_name = f"lua_{func.name}"
+
+    # Generate parameter checking and extraction
+    param_checks = []
+    param_extracts = []
+
+    for i, (param_type, param_name) in enumerate(func.params, 1):
+        if "const char*" in param_type:
+            param_checks.append(f'    const char* {param_name} = luaL_checkstring(L, {i});')
+            param_extracts.append(f'{param_name}')
+        elif param_type == "std::string" or "const std::string&" in param_type:
+            param_checks.append(f'    std::string {param_name} = luaL_checkstring(L, {i});')
+            param_extracts.append(f'{param_name}')
+        elif "int" in param_type or "long" in param_type:
+            param_checks.append(f'    {param_type} {param_name} = luaL_checkinteger(L, {i});')
+            param_extracts.append(f'{param_name}')
+        elif "bool" in param_type:
+            param_checks.append(f'    bool {param_name} = lua_toboolean(L, {i});')
+            param_extracts.append(f'{param_name}')
+        elif "float" in param_type:
+            param_checks.append(f'    float {param_name} = luaL_checknumber(L, {i});')
+            param_extracts.append(f'{param_name}')
+        elif "Config" in param_type:
+            # Special handling for Config struct - expect host, port, serverKey, useSSL as separate parameters
+            param_checks.append(f'    std::string config_host = luaL_checkstring(L, {i});')
+            param_checks.append(f'    int config_port = luaL_checkinteger(L, {i+1});')
+            param_checks.append(f'    std::string config_serverKey = luaL_checkstring(L, {i+2});')
+            param_checks.append(f'    bool config_useSSL = lua_toboolean(L, {i+3});')
+            param_checks.append(f'    {param_type} {param_name} = {{config_host, config_port, config_serverKey, config_useSSL}};')
+            param_extracts.append(f'{param_name}')
+        else:
+            # Generic parameter
+            param_checks.append(f'    // TODO: Handle parameter {param_name} of type {param_type}')
+            param_extracts.append(f'{param_name}')
+
+    # Generate function call
+    if class_name:
+        base_call = f"{class_name}::GetInstance()->{func.name}({', '.join(param_extracts)})"
+    else:
+        base_call = f"{func.name}({', '.join(param_extracts)})"
+
+    # Generate return value handling
+    if func.return_type == "void":
+        call = f"    {base_call};"
+        return_stmt = "    return 0;"
+    elif func.return_type in ["int", "long", "long long"]:
+        call = f"    auto result = {base_call};"
+        return_stmt = f"    lua_pushinteger(L, result);\n    return 1;"
+    elif func.return_type == "bool":
+        call = f"    auto result = {base_call};"
+        return_stmt = f"    lua_pushboolean(L, result);\n    return 1;"
+    elif func.return_type == "const char*" or func.return_type == "std::string":
+        call = f"    auto result = {base_call};"
+        return_stmt = f"    lua_pushstring(L, result.c_str());\n    return 1;"
+    elif func.return_type == "AuthResult":
+        call = f"    auto result = {base_call};"
+        return_stmt = f"    PushAuthResult(L, result);\n    return 1;"
+    elif func.return_type == "SyncResult":
+        call = f"    auto result = {base_call};"
+        return_stmt = f"    PushSyncResult(L, result);\n    return 1;"
+    else:
+        # Complex return type - assume it's a struct/table
+        call = f"    auto result = {base_call};"
+        return_stmt = f"    // TODO: Handle return type {func.return_type}\n    return 1;"
+    # Generate the complete wrapper function
+    wrapper = f"""static int {lua_func_name}(lua_State* L) {{
+"""
+    if param_checks:
+        wrapper += "\n".join(param_checks) + "\n\n"
+
+    wrapper += f"""{call}
+{return_stmt}
+}}
+
+"""
+
+    return wrapper
+
+def generate_lua_module_registration(functions: List[FunctionSignature]) -> str:
+    """Generate the Lua module registration code."""
+    reg_entries = []
+    for func in functions:
+        # Skip functions with complex parameters we can't handle
+        skip_func = False
+        for param_type, param_name in func.params:
+            if "&" in param_type and not "std::string" in param_type and not "Config" in param_type:
+                skip_func = True
+                break
+        if not skip_func:
+            reg_entries.append(f'    {{"{func.name}", lua_{func.name}}},')
+
+    registration = f"""static const luaL_Reg nakama_functions[] = {{
+{chr(10).join(reg_entries)}
+    {{NULL, NULL}} // Sentinel
+}};
+
+extern "C" int luaopen_nakama_x4(lua_State* L) {{
+    luaL_register(L, "nakama_x4", nakama_functions);
+    return 1;
+}}
+
+"""
+
+    return registration
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate Lua wrappers for C++ functions marked with // LUA_EXPORT")
+    parser.add_argument("header_dir", help="Directory containing .h files to scan for LUA_EXPORT functions")
+    parser.add_argument("-o", "--output", help="Output file for generated Lua wrappers")
+    parser.add_argument("-c", "--classname", help="Class name for method calls (optional)")
+
+    args = parser.parse_args()
+
+    # Scan header files for LUA_EXPORT marked functions
+    functions = scan_header_files_for_exports(args.header_dir)
+
+    if not functions:
+        print("No LUA_EXPORT functions found in header files")
+        return
+
+    # Generate wrappers
+    output = """// Auto-generated Lua wrappers
+#include "test_script.h"
+#include "lua_bindings.h"
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+
+// Lua wrapper functions
+
+"""
+    
+    # Skip C++ exports for existing C API functions - they are manually implemented
+    # Only generate Lua wrappers
+    
+    for func in functions:
+        output += generate_lua_wrapper(func, args.classname if args.classname else "")
+
+    # Skip generating luaopen function - it's implemented manually
+    # Just generate the wrapper functions and registration table
+    
+    output += generate_lua_module_registration(functions)
+
+    if args.output:
+        with open(args.output, 'w') as f:
+            f.write(output)
+        print(f"Generated {len(functions)} Lua wrappers in {args.output}")
+    else:
+        print(output)
+
+if __name__ == "__main__":
+    main()

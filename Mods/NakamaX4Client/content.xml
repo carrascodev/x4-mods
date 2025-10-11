@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="nakama_integration" name="Nakama Integration Mod" author="YourName" version="100" date="2025-10-06" save="true">
+  <text language="44" name="Nakama Integration Mod" description="Integrates X4: Foundations with Nakama server for multiplayer features, leaderboards, and cloud saves using Named Pipes API."/>
+  <dependency id="ws_2042901274" name="Mod Support APIs" optional="false"/>
+</content>

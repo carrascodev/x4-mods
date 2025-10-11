@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mdscript name="Nakama_Integration"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <!-- @doc-title Nakama Integration for X4 -->
+  <!-- Following sn_mod_support_apis patterns for MD-Lua communication -->
+
+  <cues>
+
+    <!-- Global variables for status tracking -->
+    <cue name="Init">
+      <actions>
+        <set_value name="$nakama_status" exact="'not_initialized'" />
+        <set_value name="$nakama_authenticated" exact="false" />
+        <set_value name="$last_sync_time" exact="0" />
+        <set_value name="$access_counter" exact="0" />
+      </actions>
+    </cue>
+
+    <!-- Helper to send commands to lua -->
+    <library name="Send_Nakama_Command">
+      <actions>
+        <!-- Build command args table from calling scope variables -->
+        <set_value name="$command_args"
+          exact="table[
+          $command = $command,
+          $credits = player.money,
+        ]" />
+
+        <do_if value="$command == 'Init'">
+          <raise_lua_event name="'Nakama.Init'" param="$command_args" />
+        </do_if>
+        <do_if value="$command == 'Auth'">
+          <raise_lua_event name="'Nakama.Auth'" param="$command_args" />
+        </do_if>
+        <do_if value="$command == 'Sync'">
+          <raise_lua_event name="'Nakama.Sync'" param="$command_args" />
+        </do_if>
+      </actions>
+    </library>
+
+    <cue name="Initialize_Nakama" instantiate="true">
+    <conditions>
+      <event_ui_triggered screen="'Nakama'" control="'initialize_nakama'" />
+    </conditions>
+    <actions>
+        <debug_text text="'[Nakama] Initializing Nakama API'" chance="100" filter="general" />
+        <set_value name="$nakama_status" exact="'initializing'" />
+        <raise_lua_event name="'Nakama.Init'" param="''"/>
+      <do_else>
+        <debug_text text="'[Nakama] Initialization trigger failed: %s'.[event.param]" chance="100"
+          filter="general" />
+      </do_else>
+    </actions>
+    </cue>
+
+    <!-- Listen for authentication completion -->
+    <cue name="Auth_Complete" instantiate="true">
+      <conditions>
+        <event_ui_triggered screen="'Nakama'" control="'auth_complete'" />
+      </conditions>
+      <actions>
+        <do_if value="event.param == 'success'">
+          <set_value name="$nakama_authenticated" exact="true" />
+          <debug_text text="'[Nakama] Authentication successful'" chance="100" filter="general" />
+
+          <!-- Start periodic sync timer -->
+          <signal_cue_instantly cue="Start_Periodic_Sync" />
+        </do_if>
+      </actions>
+    </cue>
+
+    <!-- Start periodic data synchronization -->
+    <cue name="Start_Periodic_Sync">
+      <conditions>
+        <event_cue_signalled />
+      </conditions>
+      <actions>
+        <debug_text text="'[Nakama] Starting periodic sync'" chance="100" filter="general" />
+        <signal_cue_instantly cue="Periodic_Sync_Timer" />
+      </actions>
+    </cue>
+
+    <!-- Sync player data -->
+    <cue name="Sync_Player_Data" instantiate="true">
+      <conditions>
+        <check_any>
+          <event_cue_signalled />
+          <!-- Sync every 60 seconds -->
+          <event_cue_signalled cue="Periodic_Sync_Timer" />
+        </check_any>
+      </conditions>
+      <actions>
+        <do_if value="$nakama_authenticated">
+          <debug_text text="'[Nakama] Sending sync command'" chance="100" filter="general" />
+          <raise_lua_event name="Nakama.Sync" param="table[
+            $command = 'Sync',
+            $credits = player.money,
+            $playtime = player.age,
+          ]" />
+          <set_value name="$last_sync_time" exact="player.age" />
+        </do_if>
+      </actions>
+    </cue>
+
+    <!-- Periodic timer for data sync (every 60 seconds) -->
+    <cue name="Periodic_Sync_Timer" instantiate="true">
+      <conditions>
+        <event_cue_signalled />
+      </conditions>
+      <delay exact="60s" />
+      <actions>
+        <do_if value="$nakama_authenticated">
+          <signal_cue_instantly cue="Sync_Player_Data" />
+          <!-- Reset self to continue periodic sync -->
+          <reset_cue cue="this" />
+        </do_if>
+      </actions>
+    </cue>
+
+    <!-- Listen for initialization completion -->
+    <cue name="Init_Complete" instantiate="true">
+    <conditions>
+      <event_ui_triggered screen="'Nakama'" control="'init_complete'" />
+    </conditions>
+    <actions>
+      <do_if value="event.param == 'success'">
+        <set_value name="$nakama_status" exact="'initialized'" />
+        <debug_text text="'[Nakama] Initialization successful'" chance="100" filter="general" />
+      </do_if>
+      <do_else>
+        <set_value name="$nakama_status" exact="'not_initialized'" />
+        <debug_text text="'[Nakama] Initialization failed: %s'.[event.param]" chance="100"
+          filter="general" />
+      </do_else>
+    </actions>
+    </cue>
+
+    <!-- Listen for sync completion -->
+    <cue name="Sync_Complete" instantiate="true">
+      <conditions>
+        <event_ui_triggered screen="'Nakama'" control="'sync_complete'" />
+      </conditions>
+      <actions>
+        <do_if value="event.param == 'success'">
+          <debug_text text="'[Nakama] Data sync successful'" chance="100" filter="general" />
+        </do_if>
+        <do_else>
+          <debug_text text="'[Nakama] Data sync failed: %s'.[event.param]" chance="100"
+            filter="general" />
+        </do_else>
+      </actions>
+    </cue>
+  </cues>
+
+</mdscript>
