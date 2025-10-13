@@ -234,13 +234,3 @@ if(WIN32 AND NAKAMA_DLL)
         COMMENT "Copying Nakama DLL for nakama_x4 DLL"
     )
 endif()
-
-# Debug executable to test DLL loading
-add_executable(debug_nakama src/debug_nakama.cpp)
-target_include_directories(debug_nakama PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/public
-)
-target_link_libraries(debug_nakama 
-    kernel32
-    msgpack-cxx
-)
