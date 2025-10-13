@@ -165,6 +165,18 @@ add_custom_command(
     VERBATIM
 )
 
+# Generate Lua wrappers during configure
+execute_process(
+    COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py
+        ${HEADER_DIR}
+        --output_dir ${GENERATED_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE GEN_RESULT
+)
+if(NOT GEN_RESULT EQUAL 0)
+    message(FATAL_ERROR "Failed to generate Lua wrappers")
+endif()
+
 # Include the generated files list
 include(${GENERATED_DIR}/generated_files.cmake)
 
