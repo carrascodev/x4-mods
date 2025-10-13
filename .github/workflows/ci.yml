@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, dev/** ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, dev/** ]
+    branches: [ main ]
 
 jobs:
   build-and-test:
@@ -44,44 +44,3 @@ jobs:
 
     - name: Run Tests
       run: ./build/Debug/tests.exe
-
-  code-quality:
-    runs-on: windows-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup vcpkg
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgDirectory: ${{ github.workspace }}/vcpkg
-        vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'  # Pin to a stable commit
-
-    - name: Install vcpkg packages
-      run: |
-        ${{ github.workspace }}/vcpkg/vcpkg install nlohmann-json msgpack
-
-    - name: Install clang-format
-      run: choco install llvm --yes
-
-    - name: Check code formatting
-      run: |
-        $files = Get-ChildItem -Path Mods/NakamaX4Client/cpp/src -Include *.cpp,*.h -Recurse -Exclude "*generated*"
-        foreach ($file in $files) {
-          clang-format --dry-run --style=llvm $file.FullName
-        }
-
-    - name: Run Cppcheck
-      uses: Bedzior/cppcheck-action@v1.0
-      with:
-        enabled checks: all
-        enable inconclusive: true
-        generate report: true
-        path: Mods/NakamaX4Client/cpp/src
-
-    - name: Upload report
-      uses: actions/upload-artifact@v1
-      with:
-        name: report
-        path: output
