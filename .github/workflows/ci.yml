@@ -57,7 +57,7 @@ jobs:
 
     - name: Install vcpkg packages
       run: |
-        ${{ github.workspace }}/vcpkg/vcpkg install nlohmann-json msgpack-cxx
+        ${{ github.workspace }}/vcpkg/vcpkg install nlohmann-json msgpack
 
     - name: Install clang-format
       run: choco install llvm --yes
