@@ -22,7 +22,7 @@ jobs:
 
     - name: Install vcpkg packages
       run: |
-        ${{ github.workspace }}/vcpkg/vcpkg install nlohmann-json msgpack
+        ${{ github.workspace }}/vcpkg/vcpkg install nlohmann-json msgpack catch2
 
     - name: Configure CMake (Debug)
       run: |
@@ -62,8 +62,8 @@ jobs:
       run: |
         ${{ github.workspace }}/vcpkg/vcpkg install nlohmann-json msgpack
 
-    - name: Install clang-format
-      run: choco install llvm --yes
+    - name: Install clang-format and cppcheck
+      run: choco install llvm cppcheck --yes
 
     - name: Check code formatting
       run: |
@@ -73,6 +73,4 @@ jobs:
         }
 
     - name: Run cppcheck
-      uses: docker://ghcr.io/jidicula/cppcheck-action:latest
-      with:
-        args: '--enable=all --std=c++20 --language=c++ --platform=win64 Mods/NakamaX4Client/cpp/src'
+      run: cppcheck --enable=all --std=c++20 --language=c++ --platform=win64 Mods/NakamaX4Client/cpp/src
