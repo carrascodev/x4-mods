@@ -40,6 +40,9 @@ find_package(Threads REQUIRED)
 # Find nlohmann/json via vcpkg
 find_package(nlohmann_json CONFIG REQUIRED)
 
+# Find msgpack-cxx via vcpkg
+find_package(msgpack-cxx CONFIG REQUIRED)
+
 # Platform-specific libraries
 if(WIN32)
     set(PLATFORM_LIBS ws2_32)
@@ -172,6 +175,8 @@ add_custom_target(generate_wrappers DEPENDS ${GENERATED_DIR}/generated_files.cma
 add_library(nakama_x4 SHARED
     src/private/nakama_x4_client.cpp
     src/private/nakama_realtime_client.cpp
+    src/private/sector_match.cpp
+    src/private/player_ship.cpp
     src/private/log_to_x4.cpp
     src/private/lua_bindings.cpp
     ${GENERATED_WRAPPERS}
@@ -192,11 +197,13 @@ target_link_libraries(nakama_x4 PRIVATE
     ${PLATFORM_LIBS}
     $<$<BOOL:${nlohmann_json_FOUND}>:nlohmann_json::nlohmann_json>
     ${LUA_LIBRARIES}
+    msgpack-cxx
 )
 
 target_compile_definitions(nakama_x4 PRIVATE 
     NAKAMA_X4_EXPORTS
     HAVE_NAKAMA_SDK=1
+    MSGPACK_NO_BOOST
 )
 
 # Set DLL output properties
@@ -218,4 +225,10 @@ endif()
 
 # Debug executable to test DLL loading
 add_executable(debug_nakama src/debug_nakama.cpp)
-target_link_libraries(debug_nakama kernel32)
+target_include_directories(debug_nakama PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/public
+)
+target_link_libraries(debug_nakama 
+    kernel32
+    msgpack-cxx
+)

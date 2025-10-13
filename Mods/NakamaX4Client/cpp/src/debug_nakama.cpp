@@ -1,6 +1,10 @@
 #include <windows.h>
 #include <iostream>
 #include <string>
+#include <vector>
+#include <map>
+#include <msgpack.hpp>
+#include "../public/sector_match.h"
 
 // Define the function signature for luaopen_test_script_x4
 typedef int (*LuaOpenFunction)(void* L);
@@ -8,8 +12,61 @@ typedef int (*LuaOpenFunction)(void* L);
 // Define the function signature for nakama_init
 typedef int (*NakamaInitFunc)(const char* host, int port, const char* server_key);
 
+// Test MessagePack serialization/deserialization
+void testMessagePack()
+{
+    std::cout << "\n=== Testing MessagePack Serialization ===" << std::endl;
+    
+    try
+    {
+        // Create test data using PositionUpdate struct
+        PositionUpdate original;
+        original.player_id = "player123";
+        original.position = {100.0f, 200.0f, 300.0f};
+        original.rotation = {0.1f, 0.2f, 0.3f};
+        original.velocity = {1.0f, 2.0f, 3.0f};
+        
+        // Serialize using msgpack::sbuffer
+        msgpack::sbuffer sbuf;
+        msgpack::pack(sbuf, original);
+        
+        std::cout << "Serialized data size: " << sbuf.size() << " bytes" << std::endl;
+        
+        // Deserialize
+        msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+        msgpack::object obj = oh.get();
+        
+        // Convert to PositionUpdate struct
+        PositionUpdate deserialized;
+        obj.convert(deserialized);
+        
+        // Verify data
+        bool success = true;
+        if (deserialized.player_id != original.player_id) { std::cout << "ERROR: player_id mismatch" << std::endl; success = false; }
+        if (deserialized.position != original.position) { std::cout << "ERROR: position mismatch" << std::endl; success = false; }
+        if (deserialized.rotation != original.rotation) { std::cout << "ERROR: rotation mismatch" << std::endl; success = false; }
+        if (deserialized.velocity != original.velocity) { std::cout << "ERROR: velocity mismatch" << std::endl; success = false; }
+        
+        if (success)
+        {
+            std::cout << "SUCCESS: MessagePack serialization/deserialization works correctly!" << std::endl;
+        }
+        else
+        {
+            std::cout << "FAILURE: Data mismatch in MessagePack test" << std::endl;
+        }
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "ERROR: MessagePack test failed with exception: " << e.what() << std::endl;
+    }
+}
+
 int main() {
     std::cout << "=== C++ Nakama DLL Debug Test ===" << std::endl;
+    
+    // Test MessagePack functionality first
+    testMessagePack();
     
     // Step 1: Try to load nakama_x4.dll
     std::cout << "Step 1: Loading nakama_x4.dll..." << std::endl;

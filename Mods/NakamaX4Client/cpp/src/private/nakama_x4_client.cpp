@@ -1,5 +1,6 @@
 #include "../public/nakama_x4_client.h"
 #include "../public/nakama_realtime_client.h"
+#include "../public/sector_match.h"
 #include "../public/x4_script_base.h"
 #include "../public/log_to_x4.h"
 #include <chrono>
@@ -183,6 +184,17 @@ NakamaX4Client::AuthResult NakamaX4Client::PerformAuthentication(const std::stri
             if (realtimeClient->Initialize(m_session, m_client))
             {
                 LogInfo("Realtime client initialized successfully");
+                
+                // Initialize sector manager with local player ID
+                auto* sectorManager = SectorMatchManager::GetInstance();
+                if (sectorManager->Initialize(session->getUserId()))
+                {
+                    LogInfo("Sector manager initialized successfully");
+                }
+                else
+                {
+                    LogWarning("Failed to initialize sector manager");
+                }
             }
             else
             {
@@ -305,33 +317,4 @@ NakamaX4Client::SyncResult NakamaX4Client::PerformDataSync(const std::string &pl
 bool NakamaX4Client::IsAuthenticated() const
 {
     return m_session != nullptr;
-}
-
-bool NakamaX4Client::JoinOrCreateMatch(const std::string &matchId)
-{
-    auto* realtimeClient = NakamaRealtimeClient::GetInstance();
-    if (!realtimeClient)
-    {
-        LogError("Realtime client not available");
-        return false;
-    }
-    return realtimeClient->JoinOrCreateMatch(matchId);
-}
-
-void NakamaX4Client::SendPosition(const std::string &data)
-{
-    auto* realtimeClient = NakamaRealtimeClient::GetInstance();
-    if (realtimeClient)
-    {
-        realtimeClient->SendPosition(data);
-    }
-}
-
-void NakamaX4Client::LeaveMatch()
-{
-    auto* realtimeClient = NakamaRealtimeClient::GetInstance();
-    if (realtimeClient)
-    {
-        realtimeClient->LeaveMatch();
-    }
 }

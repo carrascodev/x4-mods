@@ -59,14 +59,14 @@ def parse_cpp_function_signature(line: str) -> FunctionSignature:
         for param in param_list:
             param = param.strip()
             if param:
-                # Split type and name (handle pointers, const, etc.)
-                parts = param.split()
-                if len(parts) >= 2:
-                    param_type = ' '.join(parts[:-1])
-                    param_name = parts[-1]
-                    # Strip default value if present (e.g., "param = default" -> "param")
-                    param_name = param_name.split('=')[0].strip()
+                # Parse type and name using regex to handle default values
+                param_match = re.match(r'^(.*\S)\s+(\w+)(\s*=.*)?$', param)
+                if param_match:
+                    param_type = param_match.group(1).strip()
+                    param_name = param_match.group(2)
                     params.append((param_type, param_name))
+                else:
+                    print(f"Warning: Could not parse parameter '{param}'")
 
     return FunctionSignature(return_type, func_name, params)
 

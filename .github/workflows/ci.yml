@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, dev/** ]
+  pull_request:
+    branches: [ main, dev/** ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgDirectory: ${{ github.workspace }}/vcpkg
+        vcpkgGitURL: https://github.com/microsoft/vcpkg.git
+        vcpkgGitRef: '2024.10.21'
+
+    - name: Configure CMake (Debug)
+      run: |
+        cmake -S Mods/NakamaX4Client/cpp -B build `
+              -DCMAKE_BUILD_TYPE=Debug `
+              -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+    - name: Build (Debug)
+      run: cmake --build build --config Debug --parallel
+
+    - name: Configure CMake (Release)
+      run: |
+        cmake -S Mods/NakamaX4Client/cpp -B build-release `
+              -DCMAKE_BUILD_TYPE=Release `
+              -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+    - name: Build (Release)
+      run: cmake --build build-release --config Release --parallel
+
+  code-quality:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgDirectory: ${{ github.workspace }}/vcpkg
+        vcpkgGitURL: https://github.com/microsoft/vcpkg.git
+        vcpkgGitRef: '2024.10.21'
+
+    - name: Install clang-format and cppcheck
+      run: choco install llvm cppcheck --yes
+
+    - name: Check code formatting
+      run: |
+        $files = Get-ChildItem -Path Mods/NakamaX4Client/cpp/src -Include *.cpp,*.h -Recurse
+        foreach ($file in $files) {
+          clang-format --dry-run --Werror --style=llvm $file.FullName
+        }
+
+    - name: Run cppcheck
+      run: cppcheck --enable=all --std=c++20 --language=c++ --platform=win64 Mods/NakamaX4Client/cpp/src

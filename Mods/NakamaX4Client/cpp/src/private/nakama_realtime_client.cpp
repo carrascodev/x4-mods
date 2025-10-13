@@ -1,7 +1,11 @@
 #include "../public/nakama_realtime_client.h"
 #include "../public/log_to_x4.h"
+#include "../public/sector_match.h"
 #include <chrono>
 #include <thread>
+#include <sstream>
+#include <string>
+#include <msgpack.hpp>
 
 NakamaRealtimeClient::NakamaRealtimeClient()
     : X4ScriptSingleton("NakamaRealtimeClient"), m_connected(false)
@@ -219,4 +223,61 @@ void NakamaRealtimeClient::OnMatchJoined(const std::string& matchId)
 void NakamaRealtimeClient::OnMatchLeft()
 {
     LogInfo("Left current match");
+    m_currentMatchId.clear();
+}
+
+void NakamaRealtimeClient::onMatchData(const Nakama::NMatchData& matchData)
+{
+    // Handle incoming match data (position updates from other players)
+    if (matchData.opCode == 1) // Position data opcode
+    {
+        try
+        {
+            // Deserialize MessagePack data into PositionUpdate struct
+            msgpack::object_handle oh = msgpack::unpack(
+                reinterpret_cast<const char*>(matchData.data.data()), 
+                matchData.data.size()
+            );
+            msgpack::object obj = oh.get();
+            
+            // Convert to PositionUpdate struct
+            PositionUpdate update;
+            obj.convert(update);
+            
+            // Update remote player
+            auto* sectorManager = SectorMatchManager::GetInstance();
+            if (sectorManager)
+            {
+                sectorManager->UpdateRemotePlayer(update.player_id, update.position, update.rotation, update.velocity);
+            }
+        }
+        catch (const std::exception& e)
+        {
+            LogError("Failed to deserialize match data: %s", e.what());
+        }
+    }
+}
+
+void NakamaRealtimeClient::onMatchPresence(const Nakama::NMatchPresenceEvent& matchPresence)
+{
+    // Handle players joining/leaving the match
+    auto* sectorManager = SectorMatchManager::GetInstance();
+    if (!sectorManager)
+        return;
+
+    for (const auto& presence : matchPresence.joins)
+    {
+        LogInfo("Player joined match: %s", presence.userId.c_str());
+        // When a player joins, they should send their current position
+        // For now, just add them as a remote player
+        PlayerShip remoteShip(presence.userId, "remote_ship", true);
+        sectorManager->OnSectorJoined(sectorManager->GetCurrentSector(), remoteShip);
+    }
+
+    for (const auto& presence : matchPresence.leaves)
+    {
+        LogInfo("Player left match: %s", presence.userId.c_str());
+        // Remove the player from sector manager
+        sectorManager->RemovePlayer(presence.userId);
+    }
 }
