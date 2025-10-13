@@ -43,6 +43,9 @@ find_package(nlohmann_json CONFIG REQUIRED)
 # Find msgpack-cxx via vcpkg
 find_package(msgpack-cxx CONFIG REQUIRED)
 
+# Find Catch2 for testing
+find_package(Catch2 3 REQUIRED)
+
 # Platform-specific libraries
 if(WIN32)
     set(PLATFORM_LIBS ws2_32)
@@ -234,3 +237,11 @@ if(WIN32 AND NAKAMA_DLL)
         COMMENT "Copying Nakama DLL for nakama_x4 DLL"
     )
 endif()
+
+# Tests
+enable_testing()
+add_executable(tests tests/test_basic.cpp)
+target_link_libraries(tests Catch2::Catch2WithMain)
+
+include(Catch)
+catch_discover_tests(tests)
