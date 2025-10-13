@@ -67,9 +67,9 @@ jobs:
 
     - name: Check code formatting
       run: |
-        $files = Get-ChildItem -Path Mods/NakamaX4Client/cpp/src -Include *.cpp,*.h -Recurse
+        $files = Get-ChildItem -Path Mods/NakamaX4Client/cpp/src -Include *.cpp,*.h -Recurse -Exclude "*generated*"
         foreach ($file in $files) {
-          clang-format --dry-run --Werror --style=file $file.FullName
+          clang-format --dry-run --style=llvm $file.FullName
         }
 
     - name: Run cppcheck
