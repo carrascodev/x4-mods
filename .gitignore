@@ -16,6 +16,9 @@ out/
 !Mods/NakamaX4Client/cpp/third-party/nakama-sdk/win-x64/lib/*.lib
 !Mods/NakamaX4Client/cpp/third-party/nakama-sdk/win-x64/lib/*.pdb
 !Mods/NakamaX4Client/cpp/third-party/nakama-sdk/win-x64/lib/*.dll
+# Exception for Lua dependencies
+!Mods/NakamaX4Client/cpp/third-party/lua/*.lib
+!Mods/NakamaX4Client/cpp/third-party/lua/*.h
 
 # Built DLLs (but allow third-party dependencies)
 nakama_x4.dll
