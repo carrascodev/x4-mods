@@ -18,7 +18,7 @@ jobs:
       uses: lukka/run-vcpkg@v11
       with:
         vcpkgDirectory: ${{ github.workspace }}/vcpkg
-        vcpkgGitCommitId: 'b3224e69953d14df95e6e37c5cf3f49e6c7b3f5e'  # Pin to a stable commit
+        vcpkgGitCommitId: '5e0cab2'  # Pin to a stable commit
 
     - name: Configure CMake (Debug)
       run: |
@@ -49,7 +49,7 @@ jobs:
       uses: lukka/run-vcpkg@v11
       with:
         vcpkgDirectory: ${{ github.workspace }}/vcpkg
-        vcpkgGitCommitId: 'b3224e69953d14df95e6e37c5cf3f49e6c7b3f5e'  # Pin to a stable commit
+        vcpkgGitCommitId: '5e0cab2'  # Pin to a stable commit
 
     - name: Install clang-format
       run: choco install llvm --yes
