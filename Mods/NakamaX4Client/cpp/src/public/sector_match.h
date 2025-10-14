@@ -4,10 +4,10 @@
 #include <map>
 #include <vector>
 #include <chrono>
+#include <msgpack.hpp>
 #include "nakama_realtime_client.h"
 #include "player_ship.h"
 #include "x4_script_base.h"
-#include <msgpack.hpp>
 
 // Position update data structure for MessagePack serialization
 struct PositionUpdate
