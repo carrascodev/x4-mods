@@ -26,7 +26,7 @@ local function Load_Dll()
         "luaopen_sector_match")
     
     if lib then
-        DebugError("[Nakama] DLL loaded successfully, calling luaopen_nakama_x4_client_x4")
+        DebugError("[Nakama] DLL loaded successfully, calling luaopen_sector_match")
         return lib()  -- Call the function to get the table of functions
     else
         DebugError("[Nakama] DLL load failed: " .. tostring(err))
