@@ -59,8 +59,14 @@ else()
     set(PLATFORM_LIBS)
 endif()
 
-# Nakama SDK paths - use existing third-party location for now  
-set(NAKAMA_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third-party/nakama-sdk/win-x64" CACHE PATH "Path to pre-compiled Nakama SDK")
+# Nakama SDK paths - choose debug or release version based on build type
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(NAKAMA_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third-party/nakama-sdk-debug" CACHE PATH "Path to debug Nakama SDK")
+    message(STATUS "Using DEBUG Nakama SDK for debug builds")
+else()
+    set(NAKAMA_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third-party/nakama-sdk/win-x64" CACHE PATH "Path to release Nakama SDK")
+    message(STATUS "Using RELEASE Nakama SDK for release builds")
+endif()
 
 
 # Check if Nakama SDK exists
@@ -253,6 +259,7 @@ endif()
 enable_testing()
 add_executable(tests 
     tests/nakama_x4_client.tests.cpp
+    tests/nakama_sdk.tests.cpp
     # Include the actual source files for testing
     src/private/nakama_x4_client.cpp
     src/private/nakama_realtime_client.cpp
