@@ -6,10 +6,15 @@
 #include <chrono>
 #include <msgpack.hpp>
 
+// Magic numbers as named constants
+constexpr float DEFAULT_INTERPOLATION_DELAY_MS = 100.0f;
+constexpr int DEFAULT_MAX_SNAPSHOT_AGE_MS = 1000;
+constexpr int DEFAULT_CLEANUP_INTERVAL_MS = 5000;
+
 SectorMatchManager::SectorMatchManager()
 	: X4ScriptSingleton("SectorMatchManager"), m_localPlayerId(""),
-	m_currentSector(""), m_interpolationDelayMs(100.0f),
-	m_maxSnapshotAgeMs(1000), m_cleanupIntervalMs(5000),
+	m_currentSector(""), m_interpolationDelayMs(DEFAULT_INTERPOLATION_DELAY_MS),
+	m_maxSnapshotAgeMs(DEFAULT_MAX_SNAPSHOT_AGE_MS), m_cleanupIntervalMs(DEFAULT_CLEANUP_INTERVAL_MS),
 	m_lastCleanupTime(std::chrono::steady_clock::now()) {
 }
 
