@@ -2,10 +2,12 @@
 #include "../public/log_to_x4.h"
 #include "../public/sector_match.h"
 #include <chrono>
+#include <future>
 #include <msgpack.hpp>
 #include <sstream>
 #include <string>
 #include <thread>
+#include <nlohmann/json.hpp>
 
 NakamaRealtimeClient::NakamaRealtimeClient()
     : X4ScriptSingleton("NakamaRealtimeClient"), m_connected(false) {
@@ -89,31 +91,33 @@ bool NakamaRealtimeClient::JoinOrCreateMatch(const std::string& sectorName) {
         return false;
     }
 
-    LogInfo("Joining sector: %s", sectorName.c_str());
-    
-    // Generate deterministic match ID based on sector name
-    // The server's match handler will create the match if it doesn't exist
-    std::string matchId = "sector_match." + sectorName;
-    
-    // Pass sector name in metadata so MatchInit can access it
-    std::map<std::string, std::string> metadata;
-    metadata["sector"] = sectorName;
-    
-    // Join the match directly - server will handle creation
-    m_rtClient->joinMatch(
-        matchId,
-        metadata,
-        [this, matchId](const Nakama::NMatch& match) {
-            m_currentMatchId = match.matchId;
-            LogInfo("Successfully joined sector match: %s", m_currentMatchId.c_str());
-            OnMatchJoined(m_currentMatchId);
-        },
-        [matchId](const Nakama::NRtError& error) {
-            LogError("Failed to join sector match %s: %s", matchId.c_str(), error.message.c_str());
+    LogInfo("Looking for sector match: %s", sectorName.c_str());
+
+    try {
+
+        std::future<Nakama::NRpc> matchResponseFuture = m_client->rpcAsync(
+            m_session,
+            "list_matches", 
+            "{\"sector\":\"" + sectorName + "\"}");
+        auto matchResponse = matchResponseFuture.get();
+        // Parse the response JSON to find existing matches
+        auto json = nlohmann::json::parse(matchResponse.payload);
+        std::string matchId = json.value("match_id", "");
+        if (!matchId.empty()) {
+            LogInfo("Joining match: %s", matchId.c_str());
+            auto joinFuture = m_rtClient->joinMatchAsync(matchId, {{"sector", sectorName}});
+            joinFuture.wait_for(std::chrono::seconds(5)); // Wait for join to complete
+            m_currentMatchId = matchId;
+            OnMatchJoined(matchId);
+            return true;
         }
-    );
-    
-    return true;
+        return false;
+    }
+    catch (const std::exception& e) {
+        LogError("Exception while joining/creating match for sector %s: %s", 
+                sectorName.c_str(), e.what());
+        return false;
+    }
 }
 
 void NakamaRealtimeClient::SendPosition(const std::string& data) {

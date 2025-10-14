@@ -17,8 +17,10 @@ console:
   username: "admin"
   password: "password"
 runtime:
-  path: "/nakama/data/modules"    # Path to custom Go plugins
+  path: "/nakama/data/modules"    # Path to Lua modules
   http_key: "runtime-key"
+  lua:
+    entrypoint: "main.lua"        # Lua entry point
 session:
   token_expiry_sec: 31536000         # Session token expiration (1 year, effectively never)
 socket:

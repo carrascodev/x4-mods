@@ -16,18 +16,29 @@ async function test() {
     
     await socket.connect(session, true);
     console.log('✅ Socket connected to Nakama realtime\n');
+
+    console.log('📡 Testing Lua RPC: get_sector_match_id...');
+    const matchResponse = await client.rpc(session, 'get_sector_match_id', { sector: 'TestSector' });
+    const matchId = matchResponse.payload.match_id;
     
-    console.log('🎮 Testing sector match handler...');
-    const match = await socket.joinMatch('sector_match.TestSector',undefined, {sector: 'TestSector'});
-    console.log('✅ Joined sector match successfully!');
+    console.log('🎮 Joining match:', matchId);
+    const match = await socket.joinMatch(matchId);
+    console.log('✅ Joined match successfully');
     console.log('   Match ID:', match.match_id);
-    console.log('   Label:', match.label);
-    console.log('   Presences:', match.presences.length, 'player(s)\n');
+    
+    // Wait a bit before disconnecting
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    console.log('🚪 Leaving match...');
+    await socket.leaveMatch(matchId);
     
     socket.disconnect();
     console.log('✅ ALL TESTS PASSED! Sector match handler is working correctly! 🎉');
+    return 0; // Success
   } catch (error) {
     console.error('❌ Test failed:', error.message);
   }
 }
+
+
 test();

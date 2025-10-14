@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
+
+# Set vcpkg toolchain before project()
 set(CMAKE_TOOLCHAIN_FILE "D:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
 # Lua configuration for X4
@@ -45,6 +47,10 @@ find_package(msgpack-cxx CONFIG REQUIRED)
 
 # Find Catch2 for testing
 find_package(Catch2 3 REQUIRED)
+
+# Find FakeIt for mocking
+find_package(FakeIt CONFIG REQUIRED)
+message(STATUS "Found FakeIt for mocking")
 
 # Platform-specific libraries
 if(WIN32)
@@ -245,8 +251,42 @@ endif()
 
 # Tests
 enable_testing()
-add_executable(tests tests/test_basic.cpp)
-target_link_libraries(tests Catch2::Catch2WithMain)
+add_executable(tests 
+    tests/nakama_x4_client.tests.cpp
+    # Include the actual source files for testing
+    src/private/nakama_x4_client.cpp
+    src/private/nakama_realtime_client.cpp
+    src/private/sector_match.cpp
+    src/private/player_ship.cpp
+    src/private/log_to_x4.cpp
+)
+target_link_libraries(tests 
+    Catch2::Catch2WithMain
+    FakeIt::FakeIt-catch
+    ${NAKAMA_LIBRARY}
+    Threads::Threads
+    ${PLATFORM_LIBS}
+    $<$<BOOL:${nlohmann_json_FOUND}>:nlohmann_json::nlohmann_json>
+    ${LUA_LIBRARIES}
+    msgpack-cxx
+)
+
+target_include_directories(tests PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/public
+    ${NAKAMA_INCLUDE_DIR}
+    ${LUA_INCLUDE_DIR}
+)
+
+# Copy Nakama DLL to output directory for tests as well
+if(WIN32 AND NAKAMA_DLL)
+    add_custom_command(TARGET tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${NAKAMA_DLL}"
+            "$<TARGET_FILE_DIR:tests>"
+        COMMENT "Copying Nakama DLL for tests executable"
+    )
+endif()
 
 include(Catch)
 catch_discover_tests(tests)

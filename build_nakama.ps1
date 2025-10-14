@@ -81,8 +81,8 @@ Write-Host "Build completed successfully!" -ForegroundColor Green
 
 # Run test if requested
 if ($Test) {
-    Write-Host "Running debug test..." -ForegroundColor Yellow
-    $DebugExe = Join-Path $BuildDir "$BuildType\debug_nakama.exe"
+    Write-Host "Running tests..." -ForegroundColor Yellow
+    $DebugExe = Join-Path $BuildDir "$BuildType\tests.exe"
     if (Test-Path $DebugExe) {
         & $DebugExe
     } else {
