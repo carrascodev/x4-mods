@@ -37,15 +37,17 @@ public:
 
     // Update remote player position (called when receiving network updates)
     void UpdateRemotePlayer(const std::string& playerId,
-                           const std::vector<float>& position,
-                           const std::vector<float>& rotation,
-                           const std::vector<float>& velocity);
+        const std::vector<float>& position,
+        const std::vector<float>& rotation,
+        const std::vector<float>& velocity);
 
     // Get all players currently in the sector
-    std::vector<PlayerShip> GetPlayersInSector() const;
+    // LUA_EXPORT
+    const std::map<std::string, PlayerShip>& GetPlayersInSector() const;
 
     // Get current sector
-    const std::string& GetCurrentSector() const { return m_currentSector; }
+    // LUA_EXPORT
+    const std::string GetCurrentSector() const { return &m_currentSector; }
 
     // Remove a player from the sector
     void RemovePlayer(const std::string& playerId);
@@ -55,8 +57,8 @@ public:
 
     // Send local player position to other players
     void SendLocalPosition(const std::vector<float>& position,
-                          const std::vector<float>& rotation,
-                          const std::vector<float>& velocity);
+        const std::vector<float>& rotation,
+        const std::vector<float>& velocity);
 
     // Configuration
     void SetInterpolationDelay(float delayMs);

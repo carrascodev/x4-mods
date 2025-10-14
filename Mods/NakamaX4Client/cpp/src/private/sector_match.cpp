@@ -14,8 +14,10 @@ SectorMatchManager::SectorMatchManager()
 
 SectorMatchManager::~SectorMatchManager() { Shutdown(); }
 
-bool SectorMatchManager::Initialize(const std::string &localPlayerId) {
-  if (IsInitialized()) {
+bool SectorMatchManager::Initialize(const std::string &localPlayerId)
+{
+  if (IsInitialized())
+  {
     LogWarning("SectorMatchManager already initialized");
     return true;
   }
@@ -24,7 +26,8 @@ bool SectorMatchManager::Initialize(const std::string &localPlayerId) {
 
   // Register for realtime events if needed
   auto *rtClient = NakamaRealtimeClient::GetInstance();
-  if (!rtClient) {
+  if (!rtClient)
+  {
     LogError("NakamaRealtimeClient not available");
     return false;
   }
@@ -35,8 +38,10 @@ bool SectorMatchManager::Initialize(const std::string &localPlayerId) {
   return true;
 }
 
-void SectorMatchManager::Shutdown() {
-  if (!IsInitialized()) {
+void SectorMatchManager::Shutdown()
+{
+  if (!IsInitialized())
+  {
     return;
   }
 
@@ -50,13 +55,16 @@ void SectorMatchManager::Shutdown() {
   LogInfo("SectorMatchManager shutdown complete");
 }
 
-void SectorMatchManager::ChangeSector(const std::string &newSector) {
-  if (!IsInitialized()) {
+void SectorMatchManager::ChangeSector(const std::string &newSector)
+{
+  if (!IsInitialized())
+  {
     LogError("SectorMatchManager not initialized");
     return;
   }
 
-  if (m_currentSector == newSector) {
+  if (m_currentSector == newSector)
+  {
     LogInfo("Already in sector: %s", newSector.c_str());
     return;
   }
@@ -65,11 +73,13 @@ void SectorMatchManager::ChangeSector(const std::string &newSector) {
           newSector.c_str());
 
   // Leave current sector and match
-  if (!m_currentSector.empty()) {
+  if (!m_currentSector.empty())
+  {
     OnSectorLeft(m_currentSector);
     // Leave the current match
     auto *rtClient = NakamaRealtimeClient::GetInstance();
-    if (rtClient) {
+    if (rtClient)
+    {
       rtClient->LeaveMatch();
     }
   }
@@ -87,8 +97,10 @@ void SectorMatchManager::ChangeSector(const std::string &newSector) {
 
   // Join the new match for this sector
   auto *rtClient = NakamaRealtimeClient::GetInstance();
-  if (rtClient && rtClient->IsConnected()) {
-    if (rtClient->JoinOrCreateMatch(newSector)) {
+  if (rtClient && rtClient->IsConnected())
+  {
+    if (rtClient->JoinOrCreateMatch(newSector))
+    {
       // Send local player join data
       SendLocalPosition(localShip.position, localShip.rotation,
                         localShip.velocity);
@@ -99,8 +111,10 @@ void SectorMatchManager::ChangeSector(const std::string &newSector) {
 }
 
 void SectorMatchManager::OnSectorJoined(const std::string &sector,
-                                        const PlayerShip &playerShip) {
-  if (sector != m_currentSector) {
+                                        const PlayerShip &playerShip)
+{
+  if (sector != m_currentSector)
+  {
     LogWarning("Received sector join for different sector: %s (current: %s)",
                sector.c_str(), m_currentSector.c_str());
     return;
@@ -112,19 +126,25 @@ void SectorMatchManager::OnSectorJoined(const std::string &sector,
           sector.c_str());
 }
 
-void SectorMatchManager::OnSectorLeft(const std::string &sector) {
-  if (sector != m_currentSector) {
+void SectorMatchManager::OnSectorLeft(const std::string &sector)
+{
+  if (sector != m_currentSector)
+  {
     return;
   }
 
   LogInfo("Leaving sector: %s", sector.c_str());
 
   // Remove all remote players from this sector
-  for (auto it = m_playerShips.begin(); it != m_playerShips.end();) {
-    if (it->second.is_remote) {
+  for (auto it = m_playerShips.begin(); it != m_playerShips.end();)
+  {
+    if (it->second.is_remote)
+    {
       LogInfo("Removing remote player %s from sector", it->first.c_str());
       it = m_playerShips.erase(it);
-    } else {
+    }
+    else
+    {
       ++it;
     }
   }
@@ -132,40 +152,46 @@ void SectorMatchManager::OnSectorLeft(const std::string &sector) {
 
 void SectorMatchManager::UpdateRemotePlayer(
     const std::string &playerId, const std::vector<float> &position,
-    const std::vector<float> &rotation, const std::vector<float> &velocity) {
+    const std::vector<float> &rotation, const std::vector<float> &velocity)
+{
   auto it = m_playerShips.find(playerId);
-  if (it == m_playerShips.end()) {
+  if (it == m_playerShips.end())
+  {
     // New remote player
     PlayerShip newShip(playerId, "", true);
     newShip.UpdatePosition(position, rotation, velocity);
     m_playerShips[playerId] = newShip;
     LogInfo("New remote player %s joined current sector", playerId.c_str());
-  } else {
+  }
+  else
+  {
     // Update existing player
     it->second.UpdatePosition(position, rotation, velocity);
   }
 }
 
-std::vector<PlayerShip> SectorMatchManager::GetPlayersInSector() const {
-  std::vector<PlayerShip> players;
-  for (const auto &pair : m_playerShips) {
-    players.push_back(pair.second);
-  }
-  return players;
+const std::map<std::string, PlayerShip>& SectorMatchManager::GetPlayersInSector() const
+{
+  return m_playerShips;
 }
 
 std::vector<float>
-SectorMatchManager::GetInterpolatedPosition(const std::string &playerId) const {
+SectorMatchManager::GetInterpolatedPosition(const std::string &playerId) const
+{
   auto it = m_playerShips.find(playerId);
-  if (it != m_playerShips.end()) {
+
+  if (it != m_playerShips.end())
+  {
     return it->second.GetInterpolatedPosition(m_interpolationDelayMs);
   }
   return {0.0f, 0.0f, 0.0f}; // Default position
 }
 
-void SectorMatchManager::RemovePlayer(const std::string &playerId) {
+void SectorMatchManager::RemovePlayer(const std::string &playerId)
+{
   auto it = m_playerShips.find(playerId);
-  if (it != m_playerShips.end()) {
+  if (it != m_playerShips.end())
+  {
     LogInfo("Removing player %s from sector %s", playerId.c_str(),
             m_currentSector.c_str());
     m_playerShips.erase(it);
@@ -174,20 +200,24 @@ void SectorMatchManager::RemovePlayer(const std::string &playerId) {
 
 void SectorMatchManager::SendLocalPosition(const std::vector<float> &position,
                                            const std::vector<float> &rotation,
-                                           const std::vector<float> &velocity) {
-  if (!IsInitialized() || m_currentSector.empty()) {
+                                           const std::vector<float> &velocity)
+{
+  if (!IsInitialized() || m_currentSector.empty())
+  {
     return;
   }
 
   // Update local player ship
   auto it = m_playerShips.find(m_localPlayerId);
-  if (it != m_playerShips.end()) {
+  if (it != m_playerShips.end())
+  {
     it->second.UpdatePosition(position, rotation, velocity);
   }
 
   // Send to realtime client
   auto *rtClient = NakamaRealtimeClient::GetInstance();
-  if (rtClient && rtClient->IsConnected()) {
+  if (rtClient && rtClient->IsConnected())
+  {
     // Create MessagePack message using PositionUpdate struct
     PositionUpdate update;
     update.player_id = m_localPlayerId;
@@ -204,40 +234,50 @@ void SectorMatchManager::SendLocalPosition(const std::vector<float> &position,
   }
 }
 
-void SectorMatchManager::Update(float deltaTime) {
+void SectorMatchManager::Update(float deltaTime)
+{
   // Call base class Update
   X4ScriptBase::Update(deltaTime);
 
   // Periodic cleanup of stale players
   const auto now = std::chrono::steady_clock::now();
   if (now - m_lastCleanupTime >
-      std::chrono::milliseconds(m_cleanupIntervalMs)) {
+      std::chrono::milliseconds(m_cleanupIntervalMs))
+  {
     CleanupStalePlayers();
     m_lastCleanupTime = now;
   }
 }
 
-void SectorMatchManager::CleanupStalePlayers() {
+void SectorMatchManager::CleanupStalePlayers()
+{
   const auto max_age = std::chrono::milliseconds(5000); // 5 seconds
 
-  for (auto it = m_playerShips.begin(); it != m_playerShips.end();) {
-    if (it->second.is_remote && it->second.IsStale(max_age)) {
+  for (auto it = m_playerShips.begin(); it != m_playerShips.end();)
+  {
+    if (it->second.is_remote && it->second.IsStale(max_age))
+    {
       LogInfo("Removing stale remote player: %s", it->first.c_str());
       it = m_playerShips.erase(it);
-    } else {
+    }
+    else
+    {
       ++it;
     }
   }
 }
 
-void SectorMatchManager::SetInterpolationDelay(float delayMs) {
+void SectorMatchManager::SetInterpolationDelay(float delayMs)
+{
   m_interpolationDelayMs = delayMs;
 }
 
-void SectorMatchManager::SetMaxSnapshotAge(int ageMs) {
+void SectorMatchManager::SetMaxSnapshotAge(int ageMs)
+{
   m_maxSnapshotAgeMs = ageMs;
 }
 
-void SectorMatchManager::SetCleanupInterval(int intervalMs) {
+void SectorMatchManager::SetCleanupInterval(int intervalMs)
+{
   m_cleanupIntervalMs = intervalMs;
 }

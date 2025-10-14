@@ -156,35 +156,42 @@ add_custom_target(build-help
 set(GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/generated")
 set(HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/public")
 
-# Custom command to generate Lua wrappers
-add_custom_command(
-    OUTPUT ${GENERATED_DIR}/generated_files.cmake
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${GENERATED_DIR}
-    COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py
-        ${HEADER_DIR}
-        --output_dir ${GENERATED_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py ${HEADER_DIR}/test_script.h
-    COMMENT "Generating Lua wrappers from header files marked with LUA_EXPORT"
-    VERBATIM
-)
+# Option to control when to regenerate Lua wrappers
+option(REGENERATE_LUA_WRAPPERS "Regenerate Lua wrapper files from headers" OFF)
 
-# Generate Lua wrappers during configure
-execute_process(
-    COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py
-        ${HEADER_DIR}
-        --output_dir ${GENERATED_DIR}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    RESULT_VARIABLE GEN_RESULT
-)
-if(NOT GEN_RESULT EQUAL 0)
-    message(FATAL_ERROR "Failed to generate Lua wrappers")
+# Only generate wrappers if explicitly requested or if generated files don't exist
+if(REGENERATE_LUA_WRAPPERS OR NOT EXISTS "${GENERATED_DIR}/generated_files.cmake")
+    message(STATUS "Generating Lua wrappers...")
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${GENERATED_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    execute_process(
+        COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py
+            ${HEADER_DIR}
+            --output_dir ${GENERATED_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        RESULT_VARIABLE GEN_RESULT
+    )
+    if(NOT GEN_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to generate Lua wrappers")
+    endif()
+else()
+    message(STATUS "Using existing Lua wrappers (use -DREGENERATE_LUA_WRAPPERS=ON to regenerate)")
 endif()
 
 # Include the generated files list
 include(${GENERATED_DIR}/generated_files.cmake)
 
-# Target to ensure wrappers are generated before building
-add_custom_target(generate_wrappers DEPENDS ${GENERATED_DIR}/generated_files.cmake)
+# Custom target to manually regenerate wrappers
+add_custom_target(generate_wrappers
+    COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py
+        ${HEADER_DIR}
+        --output_dir ${GENERATED_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Manually regenerating Lua wrappers from header files marked with LUA_EXPORT"
+    VERBATIM
+)
 
 # Nakama X4 DLL for Lua integration
 add_library(nakama_x4 SHARED
@@ -196,8 +203,6 @@ add_library(nakama_x4 SHARED
     src/private/lua_bindings.cpp
     ${GENERATED_WRAPPERS}
 )
-
-add_dependencies(nakama_x4 generate_wrappers)
 
 target_include_directories(nakama_x4 PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include

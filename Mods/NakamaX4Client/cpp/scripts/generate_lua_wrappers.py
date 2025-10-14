@@ -40,8 +40,10 @@ def parse_cpp_function_signature(line: str) -> FunctionSignature:
     line = re.sub(r'\s+override\s*$', '', line)
     line = re.sub(r'\s+const\s*$', '', line)
 
-    # Match function signature pattern - handle const pointers and complex types with namespaces
-    pattern = r'^((?:const\s+)?(?:\w+::)*\w+(?:\s*\*)*)\s+(\w+)\s*\((.*)\)$'
+    # Match function signature pattern - handle const, pointers, references, templates, and complex types with namespaces
+    # Supports templates like std::map<std::string, PlayerShip>& with nested angle brackets
+    # Pattern breakdown: (const )?(namespace::)*type(<template_params>)?(& or *)*
+    pattern = r'^((?:const\s+)?(?:\w+::)*\w+(?:<[^>]+>)?(?:\s*[&*])*)\s+(\w+)\s*\((.*)\)$'
     match = re.match(pattern, line)
 
     if not match:

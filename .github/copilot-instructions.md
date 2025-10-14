@@ -36,6 +36,9 @@ Built DLL: `build/Debug/nakama_x4.dll`
 - `Mods/NakamaX4Client/cpp/src/public/`: Exported classes (NakamaX4Client, NakamaRealtimeClient, SectorMatch)
 - `Mods/NakamaX4Client/lua/nakama_lib.lua`: Generated Lua bindings
 - `CMakeLists.txt`: Build config with vcpkg toolchain
+- `generate_lua_bindings.py`: Generates Lua bindings from C++ headers
+- `log_to_x4.h`: Logging macros for the mod
+- `unpacked\`: Unpacked X4 game files for reference
 
 ## Dependencies
 - Nakama server running locally (default: localhost:7350)

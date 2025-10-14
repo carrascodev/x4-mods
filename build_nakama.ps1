@@ -5,7 +5,8 @@ param(
     [string]$BuildType = "Debug",
     [switch]$Clean,
     [switch]$Test,
-    [switch]$CopyFiles = $False
+    [switch]$CopyFiles = $False,
+    [switch]$RegenerateBindings = $False
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,6 +20,11 @@ Write-Host "Building NakamaX4Client ($BuildType)" -ForegroundColor Green
 Write-Host "Project root: $ProjectRoot"
 Write-Host "CPP directory: $CppDir"
 Write-Host "Build directory: $BuildDir"
+if ($RegenerateBindings) {
+    Write-Host "Regenerate Lua bindings: YES" -ForegroundColor Cyan
+} else {
+    Write-Host "Regenerate Lua bindings: NO (use -RegenerateBindings to force)" -ForegroundColor DarkGray
+}
 Write-Host ""
 
 # Clean build directory if requested
@@ -42,7 +48,14 @@ try {
     if (Test-Path "CMakeCache.txt") {
         Remove-Item "CMakeCache.txt"
     }
-    & cmake -S $CppDir -B .
+    
+    # Build CMake command with optional regeneration flag
+    $cmakeArgs = @("-S", $CppDir, "-B", ".")
+    if ($RegenerateBindings) {
+        $cmakeArgs += "-DREGENERATE_LUA_WRAPPERS=ON"
+    }
+    
+    & cmake @cmakeArgs
     if ($LASTEXITCODE -ne 0) {
         throw "CMake configuration failed"
     }
