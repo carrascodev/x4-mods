@@ -24,19 +24,21 @@ func getServerTime(ctx context.Context, logger runtime.Logger, db *sql.DB, nk ru
 }
 
 func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, initializer runtime.Initializer) error {
-	// Example
+	// Register the sector match handler
+	// This allows matches to be created automatically when players join with sector-based match IDs
+	if err := initializer.RegisterMatch("sector_match", func(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule) (runtime.Match, error) {
+		return &SectorMatchHandler{}, nil
+	}); err != nil {
+		logger.Error("Failed to register sector_match handler: %v", err)
+		return err
+	}
+	logger.Info("Registered sector_match handler")
+
+	// Register RPC functions
 	if err := initializer.RegisterRpc("get_time", getServerTime); err != nil {
 		return err
 	}
 
-	// if err := initializer.RegisterRpc("list_quests", quests.ListQuests); err != nil {
-	// 	return err
-	// }
-
-	// if err := initializer.RegisterRpc("create_quest", quests.CreateQuest); err != nil {
-	// 	return err
-	// }
-
-	logger.Info("modules loaded")
+	logger.Info("modules loaded (including sector_match handler)")
 	return nil
 }

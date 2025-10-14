@@ -116,7 +116,7 @@ function L.Update()
     end
 
     -- Iterate over players
-    for player_id, ship_data in pairs(players_in_sector) do
+    for player_id, ship_data in pairs(players_in_sector()) do
         if not L.created_ships[player_id] then
             L.CreateShipForPlayer(player_id, ship_data)
         end
@@ -125,6 +125,7 @@ function L.Update()
     end
 
     -- TODO: Handle players leaving sector (cleanup)
+    
 end
 
 -- Initialize

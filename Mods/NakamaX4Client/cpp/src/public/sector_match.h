@@ -47,7 +47,7 @@ public:
 
     // Get current sector
     // LUA_EXPORT
-    const std::string GetCurrentSector() const { return &m_currentSector; }
+    const std::string& GetCurrentSector() const { return m_currentSector; }
 
     // Remove a player from the sector
     void RemovePlayer(const std::string& playerId);
@@ -56,6 +56,7 @@ public:
     std::vector<float> GetInterpolatedPosition(const std::string& playerId) const;
 
     // Send local player position to other players
+    // LUA_EXPORT
     void SendLocalPosition(const std::vector<float>& position,
         const std::vector<float>& rotation,
         const std::vector<float>& velocity);

@@ -86,3 +86,5 @@ view-x4-logs.ps1
 generated/
 universe-gen/
 unpacked/
+unpacked_mods/
+node_modules/
