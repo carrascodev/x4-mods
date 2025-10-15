@@ -107,5 +107,4 @@ See [LICENSE](LICENSE) file for details.
 
 - **Heroic Labs** - Nakama server
 - **Sir Nukes** - X4 mod support APIs
-- **X4 Community** - Game modding support</content>
-<parameter name="filePath">d:\dev\x4\README.md
+- **X4 Community** - Game modding support
