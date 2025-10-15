@@ -11,7 +11,6 @@ x4-mods/
 │   └── NakamaX4Client/          # Nakama multiplayer mod for X4
 ├── build/                       # Build artifacts (generated)
 ├── vcpkg/                       # Package manager for C++ dependencies
-├── unpacked/                    # Unpacked X4 game files for reference
 └── build_mods.ps1            # PowerShell build script
 ```
 
