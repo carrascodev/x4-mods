@@ -15,6 +15,12 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+# Include CMake utilities
+include(Mods/CMakeUtils.cmake)
+
+# Set the path to the Lua wrapper generator script (cache variable so it's available in subdirectories)
+set(LUA_WRAPPER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/Mods/HenMod.Commons/scripts/generate_lua_wrappers.py" CACHE FILEPATH "Path to the Lua wrapper generator script")
+
 # Add common library
 add_subdirectory(Mods/HenMod.Commons)
 

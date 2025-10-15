@@ -1,5 +1,8 @@
 project(NakamaX4Client VERSION 1.0.0 LANGUAGES CXX)
 
+# Include CMake utilities
+include(../CMakeUtils.cmake)
+
 # Lua configuration for X4
 set(LUA_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/../HenMod.Commons/includes/lua/lua51_64.lib")
 set(LUA_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../HenMod.Commons/includes/lua")
@@ -21,24 +24,8 @@ if(EXISTS "${NAKAMA_SDK_ROOT}")
     endif()
 endif()
 
-# Generate Lua wrappers
-set(GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src/generated")
-set(HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src/public")
-
-if(NOT EXISTS "${GENERATED_DIR}/generated_files.cmake")
-    execute_process(
-        COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/../HenMod.Commons/scripts/generate_lua_wrappers.py
-            ${HEADER_DIR}
-            --output_dir ${GENERATED_DIR}
-    )
-endif()
-include(${GENERATED_DIR}/generated_files.cmake)
-
-add_custom_target(generate_wrappers
-    COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/../HenMod.Commons/scripts/generate_lua_wrappers.py
-        ${HEADER_DIR}
-        --output_dir ${GENERATED_DIR}
-)
+# Generate Lua wrappers using the common function
+generate_lua_wrappers(NakamaX4Client)
 
 # Nakama X4 DLL
 add_library(nakama_x4 SHARED

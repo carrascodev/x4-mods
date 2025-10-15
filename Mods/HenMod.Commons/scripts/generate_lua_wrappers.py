@@ -353,13 +353,15 @@ int luaopen_{module_name}(lua_State* L) {{
 
 def main():
     parser = argparse.ArgumentParser(description="Generate Lua wrappers for C++ functions marked with // LUA_EXPORT")
-    parser.add_argument("header_dir", help="Directory containing .h files to scan for LUA_EXPORT functions")
-    parser.add_argument("-o", "--output_dir", help="Output directory for generated Lua wrapper files")
+    parser.add_argument("header_dirs", nargs='+', help="Directories containing .h files to scan for LUA_EXPORT functions")
+    parser.add_argument("-o", "--output_dir", help="Output directory for generated Lua wrapper files (default: <ModFolder>/cpp/src/generated)")
 
     args = parser.parse_args()
 
-    # Scan header files for LUA_EXPORT marked functions
-    functions = scan_header_files_for_exports(args.header_dir)
+    # Scan header files for LUA_EXPORT marked functions from all directories
+    functions = []
+    for header_dir in args.header_dirs:
+        functions.extend(scan_header_files_for_exports(header_dir))
 
     if not functions:
         print("No LUA_EXPORT functions found in header files")
@@ -374,7 +376,15 @@ def main():
         functions_by_header[header_file].append(func)
 
     # Generate wrapper files for each header
-    output_dir = args.output_dir or os.path.join(args.header_dir, "../generated")
+    if args.output_dir:
+        output_dir = args.output_dir
+    else:
+        # Default to <ModFolder>/cpp/src/generated where ModFolder is the parent of the first header_dir's parent
+        # If header_dir is cpp/src/public, then output to cpp/src/generated
+        first_header_dir = args.header_dirs[0]
+        mod_folder = os.path.dirname(os.path.dirname(os.path.abspath(first_header_dir)))
+        output_dir = os.path.join(mod_folder, "cpp", "src", "generated")
+    
     os.makedirs(output_dir, exist_ok=True)
 
     generated_files = []
