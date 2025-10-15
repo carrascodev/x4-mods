@@ -101,7 +101,7 @@ bool NakamaRealtimeClient::JoinOrCreateMatch(const std::string& sectorName) {
 
         std::future<Nakama::NRpc> matchResponseFuture = m_client->rpcAsync(
             m_session,
-            "list_matches", 
+            "get_sector_match_id", 
             "{\"sector\":\"" + sectorName + "\"}");
         auto matchResponse = matchResponseFuture.get();
         // Parse the response JSON to find existing matches

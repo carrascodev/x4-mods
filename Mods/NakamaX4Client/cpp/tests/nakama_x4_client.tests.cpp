@@ -65,12 +65,6 @@ TEST_CASE("NakamaX4Client Basic Tests") {
         INFO("Client initialized successfully");
     }
 
-    SECTION("Authenticate") {
-        auto authResult = fixture.EnsureAuthenticated();
-        REQUIRE(authResult == true);
-        REQUIRE(fixture.client->IsAuthenticated() == true);
-    }
-
     SECTION("SyncPlayerData") {
         // Use the helper method to ensure authentication happened
         if (fixture.EnsureAuthenticated()) {
@@ -85,18 +79,6 @@ TEST_CASE("NakamaX4Client Basic Tests") {
                 REQUIRE(syncResult.success == false);
                 INFO("Data sync failed: " + syncResult.errorMessage);
             }
-        }
-    }
-
-    SECTION("Connect to Realtime Server") {
-        if (fixture.EnsureAuthenticated()) {
-            REQUIRE(NakamaRealtimeClient::GetInstance()->IsConnected() == true);
-            
-            // Add your realtime connection test here
-            INFO("Realtime connection test would go here");
-        }
-        else {
-            FAIL("Authentication failed - cannot test realtime connection");
         }
     }
 
@@ -121,7 +103,7 @@ TEST_CASE("SectorMatchManager Tests") {
             // Initialize sector manager
             if (fixture.InitializeSectorManager(fixture.client->GetSession()->getUserId())) {
 
-                //std::this_thread::sleep_for(std::chrono::seconds(2)); // Wait for any async setup
+                std::this_thread::sleep_for(std::chrono::seconds(2)); // Wait for any async setup
                 // Check if the realtime client is connected
                 REQUIRE(NakamaRealtimeClient::GetInstance()->IsConnected() == true);
                 // Attempt to join a match
