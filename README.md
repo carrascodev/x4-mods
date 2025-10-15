@@ -1,4 +1,4 @@
-# X4 Mods - Nakama Multiplayer Integration
+# X4 Mods
 
 A collection of X4: Foundations mods featuring multiplayer capabilities through Nakama server integration. Built with a modular C++ architecture using shared commons library.
 
@@ -46,7 +46,7 @@ Shared C++ library providing:
 - Lua integration helpers
 - Common dependencies (nlohmann_json, msgpack-cxx)
 
-### NakamaX4Client
+### NakamaX4Client (WIP)
 Multiplayer mod featuring:
 - Real-time multiplayer via Nakama server
 - Player authentication and data synchronization
