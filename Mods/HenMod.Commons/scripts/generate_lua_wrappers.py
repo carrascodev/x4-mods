@@ -41,9 +41,23 @@ def parse_cpp_function_signature(line: str) -> FunctionSignature:
     line = re.sub(r'\s+const\s*$', '', line)
 
     # Match function signature pattern - handle const, pointers, references, templates, and complex types with namespaces
-    # Supports templates like std::map<std::string, PlayerShip>& with nested angle brackets
-    # Pattern breakdown: (const )?(namespace::)*type(<template_params>)?(& or *)*
-    pattern = r'^((?:const\s+)?(?:\w+::)*\w+(?:<[^>]+>)?(?:\s*[&*])*)\s+(\w+)\s*\((.*)\)$'
+    # Break down the complex regex into readable named patterns
+    const_qualifier = r'(?:const\s+)?'                    # Optional const qualifier
+    namespace_prefix = r'(?:\w+::)*'                      # Optional namespace prefixes (e.g., std::, MyNamespace::)
+    type_name = r'\w+'                                    # Base type name
+    template_params = r'(?:<[^>]+>)?'                     # Optional template parameters (e.g., <std::string>)
+    type_modifiers = r'(?:\s*[&*])*'                      # Optional reference (&) or pointer (*) modifiers
+
+    # Complete type pattern: const? (namespace::)* type (<template>)? (& or *)*
+    return_type_pattern = f'^{const_qualifier}{namespace_prefix}{type_name}{template_params}{type_modifiers}'
+
+    # Function name and parameters
+    function_name = r'(\w+)'                              # Capture function name
+    parameters = r'\s*\((.*)\)'                           # Capture parameters inside parentheses
+
+    # Complete pattern: return_type function_name(parameters)
+    pattern = f'{return_type_pattern}\\s+{function_name}{parameters}$'
+
     match = re.match(pattern, line)
 
     if not match:

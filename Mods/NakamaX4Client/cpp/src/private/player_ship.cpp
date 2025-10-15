@@ -2,6 +2,9 @@
 #include <algorithm>
 #include <chrono>
 
+// Snapshot retention time in milliseconds (1 second)
+constexpr auto SNAPSHOT_RETENTION_MS = std::chrono::milliseconds(1000);
+
 PlayerShip::PlayerShip()
     : player_id(""), ship_id(""), position{0.0f, 0.0f, 0.0f},
       rotation{0.0f, 0.0f, 0.0f}, velocity{0.0f, 0.0f, 0.0f}, is_remote(false),
@@ -44,7 +47,7 @@ void PlayerShip::UpdatePosition(const std::vector<float> &new_position,
   snapshots.push_back(snapshot);
 
   // Keep only recent snapshots (last 1 second worth)
-  const auto cutoff_time = last_update_time - std::chrono::milliseconds(1000);
+  const auto cutoff_time = last_update_time - SNAPSHOT_RETENTION_MS;
   snapshots.erase(std::remove_if(snapshots.begin(), snapshots.end(),
                                  [cutoff_time](const Snapshot &s) {
                                    return s.timestamp < cutoff_time;

@@ -4,6 +4,9 @@ local nk = require("nakama")
 
 local M = {}
 
+-- Match termination constants
+local MATCH_TERMINATION_TICKS = 600  -- 60 seconds at 10 ticks/sec
+
 -- Called when match is created
 function M.match_init(context, setupstate)
     local sector = "unknown"
@@ -92,7 +95,7 @@ function M.match_loop(context, dispatcher, tick, state, messages)
     if table_count(state.presences) == 0 then
         if state.empty_since == nil then
             state.empty_since = tick
-        elseif (tick - state.empty_since) > 600 then -- 60 seconds at 10 ticks/sec
+        elseif (tick - state.empty_since) > MATCH_TERMINATION_TICKS then -- 60 seconds at 10 ticks/sec
             nk.logger_info(string.format("Terminating empty match for sector %s", state.sector))
             return nil  -- Terminate the match
         end

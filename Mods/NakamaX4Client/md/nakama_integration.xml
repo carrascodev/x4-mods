@@ -164,7 +164,7 @@
         <set_value name="$ship_position" exact="position.[event.param.position.{1}, event.param.position.{2}, event.param.position.{3}]"/>
         
         <!-- Create the ship -->
-        <create_ship name="$created_ship" macro="'ship_arg_s_fighter_01_macro'" sector="player.sector">
+        <create_ship name="$created_ship" macro="event.param.macro ? event.param.macro : 'ship_arg_s_fighter_01_macro'" sector="player.sector">
           <owner exact="faction.player" overridenpc="true" />
           <safepos value="$ship_position" />
           <pilot>
