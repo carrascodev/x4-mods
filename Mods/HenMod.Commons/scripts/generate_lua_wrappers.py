@@ -41,30 +41,29 @@ def parse_cpp_function_signature(line: str) -> FunctionSignature:
     line = re.sub(r'\s+const\s*$', '', line)
 
     # Match function signature pattern - handle const, pointers, references, templates, and complex types with namespaces
-    # Break down the complex regex into readable named patterns
-    const_qualifier = r'(?:const\s+)?'                    # Optional const qualifier
-    namespace_prefix = r'(?:\w+::)*'                      # Optional namespace prefixes (e.g., std::, MyNamespace::)
-    type_name = r'\w+'                                    # Base type name
-    template_params = r'(?:<[^>]+>)?'                     # Optional template parameters (e.g., <std::string>)
-    type_modifiers = r'(?:\s*[&*])*'                      # Optional reference (&) or pointer (*) modifiers
+    # The simplified pattern below handles most C++ function signatures adequately for our use case.
 
-    # Complete type pattern: const? (namespace::)* type (<template>)? (& or *)*
-    return_type_pattern = f'^{const_qualifier}{namespace_prefix}{type_name}{template_params}{type_modifiers}'
-
-    # Function name and parameters
-    function_name = r'(\w+)'                              # Capture function name
-    parameters = r'\s*\((.*)\)'                           # Capture parameters inside parentheses
-
-    # Complete pattern: return_type function_name(parameters)
-    pattern = f'{return_type_pattern}\\s+{function_name}{parameters}$'
+    # Regex pattern to match C++ function signatures
+    # Format: [return_type] [function_name]([parameters])
+    # Examples: "void foo()", "int bar(int x, std::string y)", "const std::string& getName()"
+    # 
+    # Pattern breakdown:
+    # ^\s*           - Start of line, optional whitespace
+    # ([^(\s]+(?:\s+[^(\s]+)*?) - Group 1: return type (handles multi-word types like "const std::string&")
+    # \s+            - Required whitespace separator
+    # (\w+)          - Group 2: function name (word characters only)
+    # \s*\(          - Optional whitespace, then opening parenthesis
+    # ([^)]*)        - Group 3: parameters (anything except closing paren)
+    # \)\s*$         - Closing parenthesis, optional whitespace, end of line
+    pattern = r'^\s*([^(\s]+(?:\s+[^(\s]+)*?)\s+(\w+)\s*\(([^)]*)\)\s*$'
 
     match = re.match(pattern, line)
 
     if not match:
         raise ValueError(f"Invalid function signature: {line}")
 
-    return_type = match.group(1)
-    func_name = match.group(2)
+    return_type = match.group(1).strip()
+    func_name = match.group(2).strip()
     params_str = match.group(3).strip()
 
     # Parse parameters
@@ -292,6 +291,17 @@ def generate_lua_wrapper(func: FunctionSignature) -> str:
     elif func.return_type == "float" or func.return_type == "double":
         call = f"    auto result = {base_call};"
         return_stmt = f"    lua_pushnumber(L, result);\n    return 1;"
+    elif "const std::string&" in func.return_type:
+        call = f"    auto result = {base_call};"
+        return_stmt = f"    lua_pushstring(L, result.c_str());\n    return 1;"
+    elif "const std::map<std::string, PlayerShip>&" in func.return_type:
+        call = f"    auto result = {base_call};"
+        return_stmt = f"""    lua_newtable(L);
+    for (const auto& pair : result) {{
+        PushPlayerShip(L, pair.second);
+        lua_setfield(L, -2, pair.first.c_str());
+    }}
+    return 1;"""
     else:
         # Complex return type - assume it's a struct/table
         call = f"    auto result = {base_call};"
