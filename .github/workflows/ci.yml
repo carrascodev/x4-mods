@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgDirectory: ${{ github.workspace }}/vcpkg
+        vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'  # Pin to a stable commit
+
+    - name: Install vcpkg packages
+      run: |
+        ${{ github.workspace }}/vcpkg/vcpkg install nlohmann-json msgpack catch2 FakeIt
+
+    - name: Configure CMake (Debug)
+      run: |
+        cmake -S Mods/NakamaX4Client/cpp -B build `
+              -DCMAKE_BUILD_TYPE=Debug `
+              -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+    - name: Build (Debug)
+      run: cmake --build build --config Debug --parallel
+
+    - name: Configure CMake (Release)
+      run: |
+        cmake -S Mods/NakamaX4Client/cpp -B build-release `
+              -DCMAKE_BUILD_TYPE=Release `
+              -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+    - name: Build (Release)
+      run: cmake --build build-release --config Release --parallel
+
+    - name: Run Tests
+      run: ./build/Debug/tests.exe

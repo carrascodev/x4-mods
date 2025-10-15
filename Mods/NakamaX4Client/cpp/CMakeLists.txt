@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
+
+# Set vcpkg toolchain before project()
 set(CMAKE_TOOLCHAIN_FILE "D:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
 # Lua configuration for X4
@@ -37,8 +39,12 @@ endif()
 # Find required packages
 find_package(Threads REQUIRED)
 
-# Find nlohmann/json via vcpkg
-find_package(nlohmann_json CONFIG REQUIRED)
+# Find Catch2 for testing
+find_package(Catch2 3 REQUIRED)
+
+# Find FakeIt for mocking
+find_package(FakeIt CONFIG REQUIRED)
+message(STATUS "Found FakeIt for mocking")
 
 # Platform-specific libraries
 if(WIN32)
@@ -47,8 +53,14 @@ else()
     set(PLATFORM_LIBS)
 endif()
 
-# Nakama SDK paths - use existing third-party location for now  
-set(NAKAMA_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third-party/nakama-sdk/win-x64" CACHE PATH "Path to pre-compiled Nakama SDK")
+# Nakama SDK paths - choose debug or release version based on build type
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(NAKAMA_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third-party/nakama-sdk-debug" CACHE PATH "Path to debug Nakama SDK")
+    message(STATUS "Using DEBUG Nakama SDK for debug builds")
+else()
+    set(NAKAMA_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third-party/nakama-sdk/win-x64" CACHE PATH "Path to release Nakama SDK")
+    message(STATUS "Using RELEASE Nakama SDK for release builds")
+endif()
 
 
 # Check if Nakama SDK exists
@@ -150,53 +162,73 @@ add_custom_target(build-help
 set(GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/generated")
 set(HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/public")
 
-# Custom command to generate Lua wrappers
-add_custom_command(
-    OUTPUT ${GENERATED_DIR}/generated_files.cmake
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${GENERATED_DIR}
-    COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py
-        ${HEADER_DIR}
-        --output_dir ${GENERATED_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py ${HEADER_DIR}/test_script.h
-    COMMENT "Generating Lua wrappers from header files marked with LUA_EXPORT"
-    VERBATIM
-)
+# Option to control when to regenerate Lua wrappers
+option(REGENERATE_LUA_WRAPPERS "Regenerate Lua wrapper files from headers" OFF)
+
+# Only generate wrappers if explicitly requested or if generated files don't exist
+if(REGENERATE_LUA_WRAPPERS OR NOT EXISTS "${GENERATED_DIR}/generated_files.cmake")
+    message(STATUS "Generating Lua wrappers...")
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${GENERATED_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    execute_process(
+        COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py
+            ${HEADER_DIR}
+            --output_dir ${GENERATED_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        RESULT_VARIABLE GEN_RESULT
+    )
+    if(NOT GEN_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to generate Lua wrappers")
+    endif()
+else()
+    message(STATUS "Using existing Lua wrappers (use -DREGENERATE_LUA_WRAPPERS=ON to regenerate)")
+endif()
 
 # Include the generated files list
 include(${GENERATED_DIR}/generated_files.cmake)
 
-# Target to ensure wrappers are generated before building
-add_custom_target(generate_wrappers DEPENDS ${GENERATED_DIR}/generated_files.cmake)
+# Custom target to manually regenerate wrappers
+add_custom_target(generate_wrappers
+    COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_lua_wrappers.py
+        ${HEADER_DIR}
+        --output_dir ${GENERATED_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Manually regenerating Lua wrappers from header files marked with LUA_EXPORT"
+    VERBATIM
+)
 
 # Nakama X4 DLL for Lua integration
 add_library(nakama_x4 SHARED
     src/private/nakama_x4_client.cpp
     src/private/nakama_realtime_client.cpp
-    src/private/log_to_x4.cpp
+    src/private/sector_match.cpp
+    src/private/player_ship.cpp
     src/private/lua_bindings.cpp
     ${GENERATED_WRAPPERS}
 )
-
-add_dependencies(nakama_x4 generate_wrappers)
 
 target_include_directories(nakama_x4 PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/src/public
     ${NAKAMA_INCLUDE_DIR}
     ${LUA_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../HenMod.Commons/cpp/src/public
 )
 
 target_link_libraries(nakama_x4 PRIVATE 
     ${NAKAMA_LIBRARY}
     Threads::Threads
     ${PLATFORM_LIBS}
-    $<$<BOOL:${nlohmann_json_FOUND}>:nlohmann_json::nlohmann_json>
+    henmod_commons
     ${LUA_LIBRARIES}
 )
 
 target_compile_definitions(nakama_x4 PRIVATE 
     NAKAMA_X4_EXPORTS
     HAVE_NAKAMA_SDK=1
+    MSGPACK_NO_BOOST
 )
 
 # Set DLL output properties
@@ -216,6 +248,44 @@ if(WIN32 AND NAKAMA_DLL)
     )
 endif()
 
-# Debug executable to test DLL loading
-add_executable(debug_nakama src/debug_nakama.cpp)
-target_link_libraries(debug_nakama kernel32)
+# Tests
+enable_testing()
+add_executable(tests 
+    tests/nakama_x4_client.tests.cpp
+    tests/nakama_sdk.tests.cpp
+    # Include the actual source files for testing
+    src/private/nakama_x4_client.cpp
+    src/private/nakama_realtime_client.cpp
+    src/private/sector_match.cpp
+    src/private/player_ship.cpp
+)
+target_link_libraries(tests 
+    Catch2::Catch2WithMain
+    FakeIt::FakeIt-catch
+    ${NAKAMA_LIBRARY}
+    Threads::Threads
+    ${PLATFORM_LIBS}
+    henmod_commons
+    ${LUA_LIBRARIES}
+)
+
+target_include_directories(tests PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/public
+    ${NAKAMA_INCLUDE_DIR}
+    ${LUA_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../HenMod.Commons/cpp/src/public
+)
+
+# Copy Nakama DLL to output directory for tests as well
+if(WIN32 AND NAKAMA_DLL)
+    add_custom_command(TARGET tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${NAKAMA_DLL}"
+            "$<TARGET_FILE_DIR:tests>"
+        COMMENT "Copying Nakama DLL for tests executable"
+    )
+endif()
+
+include(Catch)
+catch_discover_tests(tests)

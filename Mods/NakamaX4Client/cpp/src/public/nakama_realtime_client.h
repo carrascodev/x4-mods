@@ -11,11 +11,8 @@ class NakamaRealtimeClient : public X4ScriptSingleton<NakamaRealtimeClient>, pub
 public:
     friend class X4ScriptSingleton<NakamaRealtimeClient>;
 
-    // Public API methods
-    // LUA_EXPORT
-    bool Initialize(std::shared_ptr<Nakama::NSessionInterface> session, std::shared_ptr<Nakama::NClientInterface> client);
-    // LUA_EXPORT
-    void Shutdown() override;
+    bool Initialize(std::shared_ptr<Nakama::NSessionInterface> session, std::shared_ptr<Nakama::NClientInterface> client, std::function<void(bool)> callback = nullptr);
+    void Shutdown();
 
     // LUA_EXPORT
     bool IsConnected() const;
@@ -30,6 +27,8 @@ public:
     void onConnect() override;
     void onDisconnect(const Nakama::NRtClientDisconnectInfo& info) override;
     void onError(const Nakama::NRtError& error) override;
+    void onMatchData(const Nakama::NMatchData& matchData) override;
+    void onMatchPresence(const Nakama::NMatchPresenceEvent& matchPresence) override;
 
     void Update(float deltaTime) override;
 

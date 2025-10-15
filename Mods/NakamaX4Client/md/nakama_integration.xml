@@ -151,6 +151,31 @@
         </do_else>
       </actions>
     </cue>
+
+    <cue name="nakama_create_ship" instantiate="true">
+      <conditions>
+        <event_ui_triggered screen="'Nakama'" control="'create_ship'" />
+      </conditions>
+      <actions>
+        <debug_text text="'[Nakama] Creating ship for player: ' + event.param.player_id" chance="100" filter="general" />
+        
+        <!-- Get params from event -->
+        <set_value name="$player_id" exact="event.param.player_id"/>
+        <set_value name="$ship_position" exact="position.[event.param.position.{1}, event.param.position.{2}, event.param.position.{3}]"/>
+        
+        <!-- Create the ship -->
+        <create_ship name="$created_ship" macro="event.param.macro ? event.param.macro : 'ship_arg_s_fighter_01_macro'" sector="player.sector">
+          <owner exact="faction.player" overridenpc="true" />
+          <safepos value="$ship_position" />
+          <pilot>
+            <select race="[race.argon]" tags="tag.aipilot"/>
+          </pilot>
+        </create_ship>
+        
+        <!-- Notify Lua that ship was created -->
+        <raise_lua_event name="'Nakama.ShipCreated'" param="$player_id"/>
+      </actions>
+    </cue>
   </cues>
 
 </mdscript>

@@ -46,14 +46,7 @@ public:
     AuthResult Authenticate(const std::string& deviceId, const std::string& username);
     // LUA_EXPORT
     SyncResult SyncPlayerData(const std::string& playerName, long long credits, long long playtime);
-    // LUA_EXPORT
-    bool IsAuthenticated() const;
-    // LUA_EXPORT
-    bool JoinOrCreateMatch(const std::string& matchId = "");
-    // LUA_EXPORT
-    void SendPosition(const std::string& data);
-    // LUA_EXPORT
-    void LeaveMatch();
+    
 
 private:
     std::thread StartUpdater();
@@ -77,4 +70,14 @@ public:
     // Helper methods
     bool CreateClient(const Config& config);
     void Update(float deltaTime) override;
+
+    void ConnectRealtimeClient(std::function<void(bool)> callback);
+
+    // LUA_EXPORT
+    bool IsAuthenticated() const;
+
+    #ifdef UNIT_TESTS
+    std::shared_ptr<Nakama::NSessionInterface> GetSession() const { return m_session; }
+    std::shared_ptr<Nakama::NClientInterface> GetClient() const { return m_client; }
+    #endif
 };
