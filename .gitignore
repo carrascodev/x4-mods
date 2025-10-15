@@ -88,3 +88,5 @@ universe-gen/
 unpacked/
 unpacked_mods/
 node_modules/
+
+.env

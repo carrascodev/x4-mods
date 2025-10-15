@@ -12,9 +12,14 @@ This is a wrapper that handles the loadlib() call for the nakama_x4 DLL.
 local L = nil
 
 local function Load_Dll()
-    local lib, err = package.loadlib(
-        "D:\\Games\\X4 Foundations\\extensions\\NakamaX4Client\\ui\\nakama\\nakama_x4.dll", 
-        "luaopen_nakama_x4_client")
+    -- Get the directory of the current script
+    local script_path = debug.getinfo(1, "S").source
+    local script_dir = script_path:match("@(.*/)") or script_path:match("@(.*\\)") or ""
+    
+    -- Construct relative path to the DLL
+    local dll_path = script_dir .. "nakama_x4.dll"
+    
+    local lib, err = package.loadlib(dll_path, "luaopen_nakama_x4_client")
     
     if lib then
         DebugError("[Nakama] DLL loaded successfully, calling luaopen_nakama_x4_client_x4")
