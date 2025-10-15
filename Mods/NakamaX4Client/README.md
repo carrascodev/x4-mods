@@ -106,6 +106,6 @@ Mods/NakamaX4Client/
 ## Credits
 
 - **Heroic Labs** - Nakama server and SDK
-- **bvbohnen** - X4 mod support APIs
+- **Sir Nukes** - X4 mod support APIs
 - **X4 Community** - Modding support and documentation
 - **HenMod.Commons** - Shared C++ utilities and base classes
