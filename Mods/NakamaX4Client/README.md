@@ -1,25 +1,35 @@
-# NakamaX4Client for X4: Foundations
+# NakamaX4Client - X4 Multiplayer Mod
 
 A mod for X4: Foundations that integrates Nakama server features (multiplayer, leaderboards, cloud saves) via a native C++ DLL bridge, directly accessible from Lua.
 
+This mod depends on `HenMod.Commons` for shared utilities and base classes.
+
 ## Quick Build Instructions
 
-1. **Open PowerShell in your project root.**
-2. **Run the build script:**
-   ```powershell
-   .\build_nakama.ps1
-   ```
-   - Use `-BuildType Release` for release builds (default is Debug).
-   - Add `-Clean` to clean the build directory.
-   - Add `-Test` to run the debug test executable after build.
-   - Add `-CopyFiles` to copy the built DLL and PDB to the mod folder.
-
-**Example:**
+### Build the Entire Project
 ```powershell
-.\build_nakama.ps1 -BuildType Debug -Clean -Test -CopyFiles
+# From project root - builds commons + NakamaX4Client
+.\build_mods.ps1 -Mod all -BuildType Debug -Clean -Test -CopyFiles
 ```
-- The built DLL will be at: `build/Debug/nakama_x4.dll`
-- If `-CopyFiles` is used, it will be copied to: `Mods/NakamaX4Client/ui/nakama/nakama_x4.dll`
+
+### Build This Mod Only
+```powershell
+# From project root - builds only NakamaX4Client (requires commons to be built first)
+.\build_mods.ps1 -Mod nakama -BuildType Debug -Test
+```
+
+**Build Output:**
+- DLL: `Mods/NakamaX4Client/ui/bin/Debug/nakama_x4.dll`
+- With `-CopyFiles`: Also copied to `Mods/NakamaX4Client/ui/nakama/nakama_x4.dll`
+
+## Architecture
+
+This mod uses a modular C++ architecture:
+
+- **HenMod.Commons**: Shared library with base classes and utilities
+- **NakamaX4Client**: Mod-specific implementation inheriting from commons
+- **Lua Bindings**: Auto-generated from C++ headers marked with `// LUA_EXPORT`
+- **Testing**: Catch2 for unit tests, FakeIt for mocking
 
 ## Integration: Key Lua API
 
@@ -74,11 +84,28 @@ nakamaLib.Shutdown()
 - **Wrapper Generator**: Python script auto-generates Lua bindings for C++ classes marked with `// LUA_EXPORT`.
 
 ## Troubleshooting
-- DLLs must be in `ui/nakama/`.
-- Use debug build for compatibility.
-- Check returned `errorMessage` for details on failures.
+
+- **Build Issues**: Ensure `HenMod.Commons` is built first with `.\build_mods.ps1 -Mod commons`
+- **DLL Location**: Must be in `ui/nakama/` folder for X4 to load
+- **Debug Build**: Use debug builds for better error messages and compatibility
+- **Dependencies**: Check that all vcpkg packages are installed (`nlohmann-json`, `msgpack-cxx`, `catch2`, `fakeit`)
+- **Error Messages**: Check returned `errorMessage` fields for detailed failure information
+
+## Project Structure
+
+```
+Mods/NakamaX4Client/
+├── cpp/src/public/          # Mod-specific C++ headers
+├── cpp/src/private/         # Mod-specific C++ implementations
+├── cpp/tests/               # Unit tests
+├── lua/                     # Generated Lua bindings
+├── ui/                      # X4 UI integration files
+└── server/                  # Nakama server configuration
+```
 
 ## Credits
-- sn_mod_support_apis (bvbohnen)
-- Nakama (Heroic Labs)
-- X4 Community
+
+- **Heroic Labs** - Nakama server and SDK
+- **bvbohnen** - X4 mod support APIs
+- **X4 Community** - Modding support and documentation
+- **HenMod.Commons** - Shared C++ utilities and base classes

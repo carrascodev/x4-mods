@@ -39,12 +39,6 @@ endif()
 # Find required packages
 find_package(Threads REQUIRED)
 
-# Find nlohmann/json via vcpkg
-find_package(nlohmann_json CONFIG REQUIRED)
-
-# Find msgpack-cxx via vcpkg
-find_package(msgpack-cxx CONFIG REQUIRED)
-
 # Find Catch2 for testing
 find_package(Catch2 3 REQUIRED)
 
@@ -211,7 +205,6 @@ add_library(nakama_x4 SHARED
     src/private/nakama_realtime_client.cpp
     src/private/sector_match.cpp
     src/private/player_ship.cpp
-    src/private/log_to_x4.cpp
     src/private/lua_bindings.cpp
     ${GENERATED_WRAPPERS}
 )
@@ -221,15 +214,15 @@ target_include_directories(nakama_x4 PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/public
     ${NAKAMA_INCLUDE_DIR}
     ${LUA_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../HenMod.Commons/cpp/src/public
 )
 
 target_link_libraries(nakama_x4 PRIVATE 
     ${NAKAMA_LIBRARY}
     Threads::Threads
     ${PLATFORM_LIBS}
-    $<$<BOOL:${nlohmann_json_FOUND}>:nlohmann_json::nlohmann_json>
+    henmod_commons
     ${LUA_LIBRARIES}
-    msgpack-cxx
 )
 
 target_compile_definitions(nakama_x4 PRIVATE 
@@ -265,7 +258,6 @@ add_executable(tests
     src/private/nakama_realtime_client.cpp
     src/private/sector_match.cpp
     src/private/player_ship.cpp
-    src/private/log_to_x4.cpp
 )
 target_link_libraries(tests 
     Catch2::Catch2WithMain
@@ -273,9 +265,8 @@ target_link_libraries(tests
     ${NAKAMA_LIBRARY}
     Threads::Threads
     ${PLATFORM_LIBS}
-    $<$<BOOL:${nlohmann_json_FOUND}>:nlohmann_json::nlohmann_json>
+    henmod_commons
     ${LUA_LIBRARIES}
-    msgpack-cxx
 )
 
 target_include_directories(tests PRIVATE 
@@ -283,6 +274,7 @@ target_include_directories(tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/public
     ${NAKAMA_INCLUDE_DIR}
     ${LUA_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../HenMod.Commons/cpp/src/public
 )
 
 # Copy Nakama DLL to output directory for tests as well
