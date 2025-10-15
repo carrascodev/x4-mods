@@ -1,5 +1,6 @@
 #include "../public/sector_match.h"
 #include "../public/log_to_x4.h"
+#include "../public/nakama_x4_client.h"
 #include "../public/nakama_realtime_client.h"
 #include "../public/player_ship.h"
 #include <algorithm>
@@ -31,17 +32,29 @@ bool SectorMatchManager::Initialize(const std::string& localPlayerId)
 	m_localPlayerId = localPlayerId;
 
 	// Register for realtime events if needed
-	auto* rtClient = NakamaRealtimeClient::GetInstance();
-	if (!rtClient)
-	{
-		LogError("NakamaRealtimeClient not available");
-		return false;
-	}
+	std::promise<bool> promise;
+	std::future<bool> connectionResult = promise.get_future();
 
-	SetInitialized(true);
-	LogInfo("SectorMatchManager initialized for player: %s",
-		localPlayerId.c_str());
-	return true;
+		auto* nakamaClient = NakamaX4Client::GetInstance();
+
+		nakamaClient->ConnectRealtimeClient([&promise](bool success) {
+			promise.set_value(success);
+		});
+
+		// Wait for the connection result (no timeout)
+		bool success = connectionResult.get();
+		
+		if (success) {
+			LogInfo("Connected to Nakama Realtime Client successfully");
+			LogInfo("SectorMatchManager initialized for player: %s", m_localPlayerId.c_str());
+			SetInitialized(true);
+		}
+		else {
+			LogError("Failed to connect to Nakama Realtime Client");
+			SetInitialized(false);
+		}
+		
+		return success;
 }
 
 void SectorMatchManager::Shutdown()

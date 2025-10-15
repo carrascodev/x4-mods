@@ -7,6 +7,7 @@
 #include <chrono>
 #include <ctime>
 #include <thread>
+#include "nakama_x4_client.h"
 
 NakamaX4Client::NakamaX4Client()
 	: X4ScriptSingleton("NakamaX4Client"), m_authenticating(false),
@@ -86,6 +87,30 @@ void NakamaX4Client::Update(float deltaTime) {
 
 	// Process any pending async operations
 	// This could be expanded to handle timeouts, retries, etc.
+}
+
+void NakamaX4Client::ConnectRealtimeClient(std::function<void(bool)> callback)
+{
+	auto* realtimeClient = NakamaRealtimeClient::GetInstance();
+
+	if(!IsInitialized() || !IsAuthenticated()) {
+		LogError("Client not initialized or authenticated");
+		callback(false);
+		return;
+	}
+
+	if(realtimeClient && realtimeClient->IsConnected()) {
+		LogInfo("Realtime client already initialized and connected");
+		callback(true);
+		return;
+	}
+
+	if (realtimeClient) {
+		realtimeClient->Initialize(m_session, m_client, callback);
+	}
+	else {
+		callback(false);
+	}
 }
 
 bool NakamaX4Client::CreateClient(const Config& config) {
@@ -169,23 +194,23 @@ NakamaX4Client::PerformAuthentication(const std::string& deviceId,
 			m_session = session;
 			m_authenticating = false;
 
-			LogInfo("Initializing realtime client...");
-			auto* realtimeClient = NakamaRealtimeClient::GetInstance();
-			if (realtimeClient->Initialize(m_session, m_client)) {
-				LogInfo("Realtime client initialized successfully");
+			// LogInfo("Initializing realtime client...");
+			// auto* realtimeClient = NakamaRealtimeClient::GetInstance();
+			// if (realtimeClient->Initialize(m_session, m_client)) {
+			// 	LogInfo("Realtime client initialized successfully");
 
-				// Initialize sector manager with local player ID
-				auto* sectorManager = SectorMatchManager::GetInstance();
-				if (sectorManager->Initialize(session->getUserId())) {
-					LogInfo("Sector manager initialized successfully");
-				}
-				else {
-					LogWarning("Failed to initialize sector manager");
-				}
-			}
-			else {
-				LogWarning("Failed to initialize realtime client");
-			}
+			// 	// Initialize sector manager with local player ID
+			// 	auto* sectorManager = SectorMatchManager::GetInstance();
+			// 	if (sectorManager->Initialize(session->getUserId())) {
+			// 		LogInfo("Sector manager initialized successfully");
+			// 	}
+			// 	else {
+			// 		LogWarning("Failed to initialize sector manager");
+			// 	}
+			// }
+			// else {
+			// 	LogWarning("Failed to initialize realtime client");
+			// }
 
 			future->set_value({ true, "" });
 			};

@@ -22,7 +22,7 @@ jobs:
 
     - name: Install vcpkg packages
       run: |
-        ${{ github.workspace }}/vcpkg/vcpkg install nlohmann-json msgpack catch2
+        ${{ github.workspace }}/vcpkg/vcpkg install nlohmann-json msgpack catch2 FakeIt
 
     - name: Configure CMake (Debug)
       run: |

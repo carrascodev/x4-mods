@@ -17,14 +17,16 @@ NakamaRealtimeClient::~NakamaRealtimeClient() { Shutdown(); }
 
 bool NakamaRealtimeClient::Initialize(
     std::shared_ptr<Nakama::NSessionInterface> session,
-    std::shared_ptr<Nakama::NClientInterface> client) {
+    std::shared_ptr<Nakama::NClientInterface> client, std::function<void(bool)> callback) {
     if (IsInitialized()) {
         LogWarning("Realtime client already initialized");
+        if (callback) callback(true);
         return true;
     }
 
     if (!session || !client) {
         LogError("Invalid session or client provided");
+        if (callback) callback(false);
         return false;
     }
 
@@ -43,11 +45,13 @@ bool NakamaRealtimeClient::Initialize(
         auto connectFuture = m_rtClient->connectAsync(m_session, true);
 
         SetInitialized(true);
+        if (callback) callback(true);
         LogInfo("Realtime client initialized successfully");
         return true;
     }
     catch (const std::exception& e) {
         LogError("Exception initializing realtime client: %s", e.what());
+        if (callback) callback(false);
         return false;
     }
 }

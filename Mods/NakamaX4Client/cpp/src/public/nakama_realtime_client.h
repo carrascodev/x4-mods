@@ -11,7 +11,7 @@ class NakamaRealtimeClient : public X4ScriptSingleton<NakamaRealtimeClient>, pub
 public:
     friend class X4ScriptSingleton<NakamaRealtimeClient>;
 
-    bool Initialize(std::shared_ptr<Nakama::NSessionInterface> session, std::shared_ptr<Nakama::NClientInterface> client);
+    bool Initialize(std::shared_ptr<Nakama::NSessionInterface> session, std::shared_ptr<Nakama::NClientInterface> client, std::function<void(bool)> callback = nullptr);
     void Shutdown();
 
     // LUA_EXPORT
